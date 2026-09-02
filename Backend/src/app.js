@@ -30,7 +30,7 @@ const invoiceRoutes = require('./routes/invoice.routes');
 const notificationRoutes = require('./routes/notification.routes');
 const dashboardRoutes = require('./routes/dashboard.routes');
 const reportRoutes = require('./routes/report.routes');
-
+const salesOrderRoutes = require('./routes/salesOrder.routes');
 const app = express();
 
 app.disable('x-powered-by');
@@ -261,6 +261,8 @@ app.use(
   `${api}/opportunities`,
   opportunityRoutes
 );
+
+app.use(`${api}/sales-orders`, salesOrderRoutes);
 
 // ======================================================
 // ACTIVITIES

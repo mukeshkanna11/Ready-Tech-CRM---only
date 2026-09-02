@@ -1,15 +1,100 @@
+'use strict';
+
 const express = require('express');
-const { authenticate } = require('../middleware/auth.middleware');
-const controller = require('../controllers/quotation.controller');
+
 const router = express.Router();
 
-router.use(authenticate);
+const {
+  createQuotation,
+  getQuotations,
+  getQuotationById,
+  updateQuotation,
+  deleteQuotation,
+  getQuotationStats,
+  updateQuotationStatus,
+  sendQuotation,
+  acceptQuotation,
+  rejectQuotation,
+} = require('../controllers/quotation.controller');
 
+const {
+  authenticate,
+} = require('../middleware/auth.middleware');
 
-router.route('/').get(controller.list).post(controller.create);
-router.route('/:id').get(controller.getById).put(controller.update).delete(controller.remove);
-router.patch('/:id/status', controller.status);
-router.get('/:id/pdf', controller.pdf);
+// ============================================================
+// QUOTATION STATS
+// ============================================================
 
+router.get(
+  '/stats',
+  authenticate,
+  getQuotationStats
+);
+
+// ============================================================
+// CREATE / LIST
+// ============================================================
+
+router.post(
+  '/',
+  authenticate,
+  createQuotation
+);
+
+router.get(
+  '/',
+  authenticate,
+  getQuotations
+);
+
+// ============================================================
+// STATUS ACTIONS
+// ============================================================
+
+router.patch(
+  '/:id/status',
+  authenticate,
+  updateQuotationStatus
+);
+
+router.post(
+  '/:id/send',
+  authenticate,
+  sendQuotation
+);
+
+router.post(
+  '/:id/accept',
+  authenticate,
+  acceptQuotation
+);
+
+router.post(
+  '/:id/reject',
+  authenticate,
+  rejectQuotation
+);
+
+// ============================================================
+// SINGLE QUOTATION
+// ============================================================
+
+router.get(
+  '/:id',
+  authenticate,
+  getQuotationById
+);
+
+router.put(
+  '/:id',
+  authenticate,
+  updateQuotation
+);
+
+router.delete(
+  '/:id',
+  authenticate,
+  deleteQuotation
+);
 
 module.exports = router;

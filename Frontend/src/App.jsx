@@ -8,15 +8,19 @@ import {
 
 import MainLayout from "./components/layout/MainLayout";
 
+// Pages
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Leads from "./pages/Leads";
 import Contacts from "./pages/Contacts";
 import Companies from "./pages/Companies";
 import Products from "./pages/Products";
+import Opportunities from "./pages/Opportunities";
+import Quotations from "./pages/Quotations";
+import SalesOrders from "./pages/SalesOrders";
 
 // ============================================================
-// AUTH HELPERS
+// AUTH TOKEN HELPER
 // ============================================================
 
 const getAccessToken = () => {
@@ -25,17 +29,21 @@ const getAccessToken = () => {
     localStorage.getItem("token") ||
     localStorage.getItem("access_token");
 
+  if (!token) {
+    return null;
+  }
+
   if (
-    !token ||
     token === "null" ||
-    token === "undefined"
+    token === "undefined" ||
+    token === ""
   ) {
     return null;
   }
 
   return String(token)
     .replace(/^Bearer\s+/i, "")
-    .trim();
+    .trim() || null;
 };
 
 // ============================================================
@@ -44,7 +52,6 @@ const getAccessToken = () => {
 
 function ProtectedRoute({ children }) {
   const location = useLocation();
-
   const token = getAccessToken();
 
   if (!token) {
@@ -63,7 +70,7 @@ function ProtectedRoute({ children }) {
 }
 
 // ============================================================
-// PUBLIC LOGIN ROUTE
+// LOGIN ROUTE
 // ============================================================
 
 function LoginRoute() {
@@ -90,18 +97,18 @@ function App() {
     <BrowserRouter>
       <Routes>
 
-        {/* ==================================================
-            PUBLIC ROUTE
-        ================================================== */}
+        {/* ======================================================
+            PUBLIC ROUTES
+        ====================================================== */}
 
         <Route
           path="/login"
           element={<LoginRoute />}
         />
 
-        {/* ==================================================
-            PROTECTED CRM ROUTES
-        ================================================== */}
+        {/* ======================================================
+            PROTECTED ROUTES
+        ====================================================== */}
 
         <Route
           element={
@@ -122,41 +129,63 @@ function App() {
             }
           />
 
-          {/* Dashboard */}
+          {/* ====================================================
+              DASHBOARD
+          ==================================================== */}
+
           <Route
             path="/dashboard"
             element={<Dashboard />}
           />
 
-          {/* Leads */}
+          {/* ====================================================
+              CRM
+          ==================================================== */}
+
           <Route
             path="/leads"
             element={<Leads />}
           />
 
-          {/* Contacts */}
           <Route
             path="/contacts"
             element={<Contacts />}
           />
 
-          {/* Companies */}
           <Route
             path="/companies"
             element={<Companies />}
           />
 
-          {/* Products */}
           <Route
             path="/products"
-            element={<Products/>}
+            element={<Products />}
+          />
+
+          {/* ====================================================
+              SALES
+          ==================================================== */}
+
+          <Route
+            path="/opportunities"
+            element={<Opportunities />}
+          />
+
+          <Route
+            path="/quotations"
+            element={<Quotations />}
+          />
+
+          <Route
+            path="/sales-orders"
+            element={<SalesOrders />}
           />
 
         </Route>
 
-        {/* ==================================================
+        {/* ======================================================
             FALLBACK
-        ================================================== */}
+        ====================================================== */}
 
         <Route
           path="*"
