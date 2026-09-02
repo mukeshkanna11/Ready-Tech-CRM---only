@@ -1,3 +1,5 @@
+'use strict';
+
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -7,7 +9,10 @@ const morgan = require('morgan');
 
 const env = require('./config/env');
 const { apiLimiter } = require('./middleware/rateLimit.middleware');
-const { notFound, errorHandler } = require('./middleware/error.middleware');
+const {
+  notFound,
+  errorHandler,
+} = require('./middleware/error.middleware');
 
 const authRoutes = require('./routes/auth.routes');
 const userRoutes = require('./routes/user.routes');
@@ -26,22 +31,146 @@ const notificationRoutes = require('./routes/notification.routes');
 const dashboardRoutes = require('./routes/dashboard.routes');
 const reportRoutes = require('./routes/report.routes');
 
-
 const app = express();
 
 app.disable('x-powered-by');
 
-app.use(helmet());
-app.use(cors({
-  origin: env.clientUrl.split(',').map((item) => item.trim()),
+
+
+// ======================================================
+// CORS CONFIGURATION
+// ======================================================
+
+const allowedOrigins = String(env.clientUrl || '')
+  .split(',')
+  .map((item) => item.trim())
+  .filter(Boolean);
+
+const defaultAllowedOrigins = [
+  'https://readytech-crm.vercel.app',
+  'http://localhost:5173',
+  'http://localhost:3000',
+];
+
+const corsOrigins = [
+  ...new Set([
+    ...defaultAllowedOrigins,
+    ...allowedOrigins,
+  ]),
+];
+
+console.log('==============================================');
+console.log('CRM CORS CONFIGURATION');
+console.log('==============================================');
+console.log('Allowed Origins:', corsOrigins);
+console.log('==============================================');
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Postman / curl / server-to-server
+    if (!origin) {
+      return callback(null, true);
+    }
+
+    if (corsOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    console.warn(
+      `CORS blocked origin: ${origin}`
+    );
+
+    return callback(
+      new Error(`CORS blocked origin: ${origin}`)
+    );
+  },
+
   credentials: true,
-}));
+
+  methods: [
+    'GET',
+    'POST',
+    'PUT',
+    'PATCH',
+    'DELETE',
+    'OPTIONS',
+  ],
+
+  allowedHeaders: [
+    'Content-Type',
+    'Authorization',
+    'Accept',
+    'Origin',
+    'X-Requested-With',
+  ],
+
+  exposedHeaders: [
+    'Content-Length',
+    'Content-Type',
+  ],
+
+  optionsSuccessStatus: 204,
+};
+
+// Apply CORS before routes
+app.use(cors(corsOptions));
+
+// ======================================================
+// SECURITY
+// ======================================================
+
+app.use(helmet());
+
+// ======================================================
+// COMPRESSION
+// ======================================================
+
 app.use(compression());
-app.use(express.json({ limit: '2mb' }));
-app.use(express.urlencoded({ extended: true, limit: '2mb' }));
+
+// ======================================================
+// BODY PARSER
+// ======================================================
+
+app.use(
+  express.json({
+    limit: '2mb',
+  })
+);
+
+app.use(
+  express.urlencoded({
+    extended: true,
+    limit: '2mb',
+  })
+);
+
+// ======================================================
+// COOKIE PARSER
+// ======================================================
+
 app.use(cookieParser());
-app.use(morgan(env.nodeEnv === 'production' ? 'combined' : 'dev'));
+
+// ======================================================
+// LOGGER
+// ======================================================
+
+app.use(
+  morgan(
+    env.nodeEnv === 'production'
+      ? 'combined'
+      : 'dev'
+  )
+);
+
+// ======================================================
+// API RATE LIMITER
+// ======================================================
+
 app.use('/api', apiLimiter);
+
+// ======================================================
+// ROOT
+// ======================================================
 
 app.get('/', (_req, res) => {
   res.json({
@@ -52,6 +181,10 @@ app.get('/', (_req, res) => {
   });
 });
 
+// ======================================================
+// HEALTH CHECK
+// ======================================================
+
 app.get('/health', (_req, res) => {
   res.json({
     success: true,
@@ -60,27 +193,170 @@ app.get('/health', (_req, res) => {
   });
 });
 
+// ======================================================
+// API VERSION
+// ======================================================
+
 const api = '/api/v1';
 
-app.use(`${api}/auth`, authRoutes);
-app.use(`${api}/users`, userRoutes);
-app.use(`${api}/roles`, roleRoutes);
-app.use(`${api}/companies`, companyRoutes);
-app.use(`${api}/contacts`, contactRoutes);
-app.use(`${api}/leads`, leadRoutes);
-app.use(`${api}/opportunities`, opportunityRoutes);
-app.use(`${api}/activities`, activityRoutes);
-app.use(`${api}/tasks`, taskRoutes);
-app.use(`${api}/notes`, noteRoutes);
-app.use(`${api}/products`, productRoutes);
-app.use(`${api}/quotations`, quotationRoutes);
-app.use(`${api}/invoices`, invoiceRoutes);
-app.use(`${api}/notifications`, notificationRoutes);
-app.use(`${api}/dashboard`, dashboardRoutes);
-app.use(`${api}/reports`, reportRoutes);
+// ======================================================
+// AUTH
+// ======================================================
 
+app.use(
+  `${api}/auth`,
+  authRoutes
+);
+
+// ======================================================
+// USERS
+// ======================================================
+
+app.use(
+  `${api}/users`,
+  userRoutes
+);
+
+// ======================================================
+// ROLES
+// ======================================================
+
+app.use(
+  `${api}/roles`,
+  roleRoutes
+);
+
+// ======================================================
+// COMPANIES
+// ======================================================
+
+app.use(
+  `${api}/companies`,
+  companyRoutes
+);
+
+// ======================================================
+// CONTACTS
+// ======================================================
+
+app.use(
+  `${api}/contacts`,
+  contactRoutes
+);
+
+// ======================================================
+// LEADS
+// ======================================================
+
+app.use(
+  `${api}/leads`,
+  leadRoutes
+);
+
+// ======================================================
+// OPPORTUNITIES
+// ======================================================
+
+app.use(
+  `${api}/opportunities`,
+  opportunityRoutes
+);
+
+// ======================================================
+// ACTIVITIES
+// ======================================================
+
+app.use(
+  `${api}/activities`,
+  activityRoutes
+);
+
+// ======================================================
+// TASKS
+// ======================================================
+
+app.use(
+  `${api}/tasks`,
+  taskRoutes
+);
+
+// ======================================================
+// NOTES
+// ======================================================
+
+app.use(
+  `${api}/notes`,
+  noteRoutes
+);
+
+// ======================================================
+// PRODUCTS
+// ======================================================
+
+app.use(
+  `${api}/products`,
+  productRoutes
+);
+
+// ======================================================
+// QUOTATIONS
+// ======================================================
+
+app.use(
+  `${api}/quotations`,
+  quotationRoutes
+);
+
+// ======================================================
+// INVOICES
+// ======================================================
+
+app.use(
+  `${api}/invoices`,
+  invoiceRoutes
+);
+
+// ======================================================
+// NOTIFICATIONS
+// ======================================================
+
+app.use(
+  `${api}/notifications`,
+  notificationRoutes
+);
+
+// ======================================================
+// DASHBOARD
+// ======================================================
+
+app.use(
+  `${api}/dashboard`,
+  dashboardRoutes
+);
+
+// ======================================================
+// REPORTS
+// ======================================================
+
+app.use(
+  `${api}/reports`,
+  reportRoutes
+);
+
+// ======================================================
+// 404
+// ======================================================
 
 app.use(notFound);
+
+// ======================================================
+// GLOBAL ERROR HANDLER
+// ======================================================
+
 app.use(errorHandler);
+
+// ======================================================
+// EXPORT
+// ======================================================
 
 module.exports = app;
