@@ -1,9 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {
-  useLocation,
-  useNavigate,
-} from "react-router-dom";
-
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   ArrowRight,
   BarChart3,
@@ -40,11 +36,7 @@ const getAccessToken = () => {
     localStorage.getItem("token") ||
     localStorage.getItem("access_token");
 
-  if (
-    !token ||
-    token === "null" ||
-    token === "undefined"
-  ) {
+  if (!token || token === "null" || token === "undefined") {
     return null;
   }
 
@@ -89,17 +81,10 @@ export default function Login() {
     password: "",
   });
 
-  const [showPassword, setShowPassword] =
-    useState(false);
-
-  const [rememberMe, setRememberMe] =
-    useState(false);
-
-  const [loading, setLoading] =
-    useState(false);
-
-  const [error, setError] =
-    useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   // ==========================================================
   // EXISTING SESSION CHECK
@@ -126,10 +111,7 @@ export default function Login() {
   // ==========================================================
 
   const handleChange = (event) => {
-    const {
-      name,
-      value,
-    } = event.target;
+    const { name, value } = event.target;
 
     setForm((previous) => ({
       ...previous,
@@ -154,42 +136,31 @@ export default function Login() {
 
     setError("");
 
-    const email =
-      form.email.trim().toLowerCase();
-
-    const password =
-      form.password;
+    const email = form.email.trim().toLowerCase();
+    const password = form.password;
 
     // ========================================================
     // VALIDATION
     // ========================================================
 
     if (!email) {
-      setError(
-        "Please enter your work email."
-      );
+      setError("Please enter your work email.");
       return;
     }
 
-    // Correct email validation
+    // FIXED EMAIL REGEX
     if (!/^\S+@\S+\.\S+$/.test(email)) {
-      setError(
-        "Please enter a valid email address."
-      );
+      setError("Please enter a valid email address.");
       return;
     }
 
     if (!password) {
-      setError(
-        "Please enter your password."
-      );
+      setError("Please enter your password.");
       return;
     }
 
     if (password.length < 6) {
-      setError(
-        "Password must contain at least 6 characters."
-      );
+      setError("Password must contain at least 6 characters.");
       return;
     }
 
@@ -200,38 +171,30 @@ export default function Login() {
     try {
       setLoading(true);
 
-      // ------------------------------------------------------
       // Clear old authentication data
-      // ------------------------------------------------------
-      //
-      // IMPORTANT:
-      // Refresh token is NOT manually managed here.
-      //
-      // Backend stores it in an HTTP-only cookie.
-      //
-      // ------------------------------------------------------
-
       clearAuthStorage();
 
-      const response = await API.post(
-        "/auth/login",
-        {
-          email,
-          password,
-        }
-      );
+      // IMPORTANT:
+      // API base URL comes from services/api.js
+      //
+      // Local:
+      // http://localhost:5000/api/v1
+      //
+      // Vercel:
+      // https://readytech-crm-api.onrender.com/api/v1
 
-      console.log(
-        "CRM LOGIN RESPONSE:",
-        response?.data
-      );
+      const response = await API.post("/auth/login", {
+        email,
+        password,
+      });
+
+      console.log("CRM LOGIN RESPONSE:", response?.data);
 
       // ======================================================
       // NORMALIZE RESPONSE
       // ======================================================
 
-      const responseData =
-        response?.data || {};
+      const responseData = response?.data || {};
 
       const payload =
         responseData?.data &&
@@ -281,10 +244,9 @@ export default function Login() {
       // CLEAN ACCESS TOKEN
       // ======================================================
 
-      const cleanAccessToken =
-        String(accessToken)
-          .replace(/^Bearer\s+/i, "")
-          .trim();
+      const cleanAccessToken = String(accessToken)
+        .replace(/^Bearer\s+/i, "")
+        .trim();
 
       if (!cleanAccessToken) {
         throw new Error(
@@ -295,38 +257,24 @@ export default function Login() {
       // ======================================================
       // SAVE ACCESS TOKEN
       // ======================================================
-      //
-      // Canonical token:
-      // accessToken
-      //
-      // api.js reads this value.
-      //
-      // ======================================================
 
       localStorage.setItem(
         "accessToken",
         cleanAccessToken
       );
 
+      // Remove duplicate token formats
+      localStorage.removeItem("token");
+      localStorage.removeItem("access_token");
+
       // ======================================================
       // DO NOT STORE REFRESH TOKEN
       // ======================================================
-      //
-      // Backend sends refreshToken as HTTP-only cookie.
-      //
-      // We intentionally do NOT do:
-      //
-      // localStorage.setItem("refreshToken", ...)
-      //
-      // ======================================================
 
-      localStorage.removeItem(
-        "refreshToken"
-      );
+      // Refresh token must remain HTTP-only cookie.
 
-      localStorage.removeItem(
-        "refresh_token"
-      );
+      localStorage.removeItem("refreshToken");
+      localStorage.removeItem("refresh_token");
 
       // ======================================================
       // SAVE USER
@@ -349,19 +297,15 @@ export default function Login() {
           "true"
         );
       } else {
-        localStorage.removeItem(
-          "rememberMe"
-        );
+        localStorage.removeItem("rememberMe");
       }
 
       // ======================================================
-      // VERIFY TOKEN WAS SAVED
+      // VERIFY TOKEN
       // ======================================================
 
       const savedToken =
-        localStorage.getItem(
-          "accessToken"
-        );
+        localStorage.getItem("accessToken");
 
       if (!savedToken) {
         throw new Error(
@@ -381,12 +325,9 @@ export default function Login() {
         location.state?.from?.pathname ||
         DEFAULT_REDIRECT;
 
-      navigate(
-        redirectPath,
-        {
-          replace: true,
-        }
-      );
+      navigate(redirectPath, {
+        replace: true,
+      });
     } catch (error) {
       // ======================================================
       // LOGIN ERROR
@@ -397,15 +338,7 @@ export default function Login() {
         error
       );
 
-      // ------------------------------------------------------
-      // Clear invalid session
-      // ------------------------------------------------------
-
       clearAuthStorage();
-
-      // ======================================================
-      // RESPONSE DETAILS
-      // ======================================================
 
       const status =
         error?.response?.status;
@@ -431,8 +364,7 @@ export default function Login() {
         responseData?.message ||
         responseData?.error?.message ||
         (
-          typeof responseData?.error ===
-          "string"
+          typeof responseData?.error === "string"
             ? responseData.error
             : null
         ) ||
@@ -490,11 +422,11 @@ export default function Login() {
       }
 
       if (
-        error?.code ===
-        "ERR_NETWORK"
+        error?.code === "ERR_NETWORK" ||
+        error?.message === "Network Error"
       ) {
         setError(
-          "Unable to connect to the CRM server. Please make sure the backend server is running."
+          "Unable to connect to the CRM server. Please check your internet connection or CRM backend."
         );
         return;
       }
@@ -549,9 +481,7 @@ export default function Login() {
 
           <div className="relative z-10 flex flex-col justify-between w-full px-12 py-10 xl:px-20">
 
-            {/* ==================================================
-                BRAND
-            ================================================== */}
+            {/* BRAND */}
 
             <div className="flex items-center gap-4">
 
@@ -559,7 +489,7 @@ export default function Login() {
 
                 <img
                   src={companyLogo}
-                  alt="ReadyTech CRM"
+                  alt="ReadyTech CRM Logo"
                   className="object-contain w-full h-full p-1.5"
                 />
 
@@ -568,13 +498,10 @@ export default function Login() {
               <div>
 
                 <h2 className="text-lg font-black text-white">
-
-                  ReadyTech
-
+                  ReadyTech{" "}
                   <span className="text-indigo-300">
                     CRM
                   </span>
-
                 </h2>
 
                 <p className="text-xs text-slate-400">
@@ -585,9 +512,7 @@ export default function Login() {
 
             </div>
 
-            {/* ==================================================
-                HERO
-            ================================================== */}
+            {/* HERO */}
 
             <div className="max-w-2xl">
 
@@ -607,24 +532,18 @@ export default function Login() {
                 Everything you need
 
                 <span className="block text-transparent bg-gradient-to-r from-indigo-300 via-violet-300 to-purple-300 bg-clip-text">
-
                   to grow relationships.
-
                 </span>
 
               </h1>
 
               <p className="max-w-xl mt-6 text-base leading-7 text-slate-300 xl:text-lg">
-
                 Centralize your leads, contacts, sales
                 pipeline, activities and customer
                 relationships in one modern CRM workspace.
-
               </p>
 
-              {/* ==================================================
-                  FEATURES
-              ================================================== */}
+              {/* FEATURES */}
 
               <div className="grid grid-cols-2 gap-4 mt-10">
 
@@ -656,9 +575,7 @@ export default function Login() {
 
             </div>
 
-            {/* ==================================================
-                BOTTOM
-            ================================================== */}
+            {/* BOTTOM */}
 
             <div className="flex items-center justify-between pt-6 border-t border-white/10">
 
@@ -699,9 +616,7 @@ export default function Login() {
 
           <div className="w-full max-w-[450px]">
 
-            {/* ==================================================
-                MOBILE BRAND
-            ================================================== */}
+            {/* MOBILE BRAND */}
 
             <div className="flex items-center gap-3 mb-8 lg:hidden">
 
@@ -709,7 +624,7 @@ export default function Login() {
 
                 <img
                   src={companyLogo}
-                  alt="ReadyTech CRM"
+                  alt="ReadyTech CRM Logo"
                   className="object-contain w-full h-full p-1.5"
                 />
 
@@ -718,13 +633,10 @@ export default function Login() {
               <div>
 
                 <p className="font-black text-slate-900">
-
-                  ReadyTech
-
+                  ReadyTech{" "}
                   <span className="text-indigo-600">
                     CRM
                   </span>
-
                 </p>
 
                 <p className="text-xs text-slate-400">
@@ -735,9 +647,7 @@ export default function Login() {
 
             </div>
 
-            {/* ==================================================
-                LOGIN CARD
-            ================================================== */}
+            {/* LOGIN CARD */}
 
             <div className="relative overflow-hidden bg-white border shadow-[0_25px_80px_rgba(15,23,42,0.10)] rounded-[28px] border-slate-200/80">
 
@@ -747,45 +657,38 @@ export default function Login() {
 
               <div className="p-7 sm:p-9">
 
-                {/* ==================================================
-                    HEADER
-                ================================================== */}
+                {/* HEADER */}
 
                 <div className="mb-8">
 
-                  <div className="flex items-center justify-center w-14 h-14 mb-6 bg-indigo-50 border border-indigo-100 rounded-2xl">
+                  {/* LOGO */}
 
-                    <LayoutDashboard
-                      size={26}
-                      className="text-indigo-600"
+                  <div className="flex items-center justify-center w-16 h-16 mb-6 overflow-hidden bg-white border shadow-sm rounded-2xl border-slate-200">
+
+                    <img
+                      src={companyLogo}
+                      alt="ReadyTech CRM Logo"
+                      className="object-contain w-full h-full p-2"
                     />
 
                   </div>
 
                   <p className="mb-2 text-xs font-bold tracking-[0.18em] text-indigo-600 uppercase">
-
                     CRM Workspace
-
                   </p>
 
                   <h1 className="text-3xl font-black tracking-tight text-slate-900">
-
                     Welcome back
-
                   </h1>
 
                   <p className="mt-2 text-sm leading-6 text-slate-500">
-
                     Sign in to your CRM workspace and
                     continue managing your business.
-
                   </p>
 
                 </div>
 
-                {/* ==================================================
-                    ERROR
-                ================================================== */}
+                {/* ERROR */}
 
                 {error && (
                   <div className="p-4 mb-5 border rounded-2xl border-red-200 bg-red-50">
@@ -793,23 +696,17 @@ export default function Login() {
                     <div className="flex items-start gap-3">
 
                       <div className="flex items-center justify-center flex-shrink-0 w-7 h-7 text-sm font-bold text-red-600 bg-red-100 rounded-full">
-
                         !
-
                       </div>
 
                       <div>
 
                         <p className="text-sm font-bold text-red-700">
-
                           Sign-in unsuccessful
-
                         </p>
 
                         <p className="mt-1 text-xs leading-5 text-red-600">
-
                           {error}
-
                         </p>
 
                       </div>
@@ -819,9 +716,7 @@ export default function Login() {
                   </div>
                 )}
 
-                {/* ==================================================
-                    FORM
-                ================================================== */}
+                {/* FORM */}
 
                 <form
                   onSubmit={handleLogin}
@@ -829,9 +724,7 @@ export default function Login() {
                   className="space-y-5"
                 >
 
-                  {/* ==================================================
-                      EMAIL
-                  ================================================== */}
+                  {/* EMAIL */}
 
                   <div>
 
@@ -846,7 +739,7 @@ export default function Login() {
 
                       <Mail
                         size={18}
-                        className="absolute text-slate-400 -translate-y-1/2 left-4 top-1/2"
+                        className="absolute z-10 text-slate-400 -translate-y-1/2 left-4 top-1/2"
                       />
 
                       <input
@@ -858,16 +751,14 @@ export default function Login() {
                         placeholder="you@company.com"
                         autoComplete="email"
                         disabled={loading}
-                        className="w-full h-12 pl-11 pr-4 text-sm font-medium transition-all border outline-none rounded-xl border-slate-200 bg-slate-50/60 text-slate-800 placeholder:text-slate-400 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 disabled:opacity-60"
+                        className="w-full h-12 pl-11 pr-4 text-sm font-semibold text-slate-900 placeholder:text-slate-400 transition-all duration-200 border outline-none rounded-xl border-slate-200 bg-white hover:border-slate-300 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500"
                       />
 
                     </div>
 
                   </div>
 
-                  {/* ==================================================
-                      PASSWORD
-                  ================================================== */}
+                  {/* PASSWORD */}
 
                   <div>
 
@@ -894,7 +785,7 @@ export default function Login() {
 
                       <Lock
                         size={18}
-                        className="absolute text-slate-400 -translate-y-1/2 left-4 top-1/2"
+                        className="absolute z-10 text-slate-400 -translate-y-1/2 left-4 top-1/2"
                       />
 
                       <input
@@ -910,15 +801,14 @@ export default function Login() {
                         placeholder="Enter your password"
                         autoComplete="current-password"
                         disabled={loading}
-                        className="w-full h-12 pl-11 pr-12 text-sm font-medium transition-all border outline-none rounded-xl border-slate-200 bg-slate-50/60 text-slate-800 placeholder:text-slate-400 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 disabled:opacity-60"
+                        className="w-full h-12 pl-11 pr-12 text-sm font-semibold text-slate-900 placeholder:text-slate-400 transition-all duration-200 border outline-none rounded-xl border-slate-200 bg-white hover:border-slate-300 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500"
                       />
 
                       <button
                         type="button"
                         onClick={() =>
                           setShowPassword(
-                            (previous) =>
-                              !previous
+                            (previous) => !previous
                           )
                         }
                         disabled={loading}
@@ -942,9 +832,7 @@ export default function Login() {
 
                   </div>
 
-                  {/* ==================================================
-                      OPTIONS
-                  ================================================== */}
+                  {/* OPTIONS */}
 
                   <div className="flex items-center justify-between">
 
@@ -976,9 +864,7 @@ export default function Login() {
 
                   </div>
 
-                  {/* ==================================================
-                      SUBMIT
-                  ================================================== */}
+                  {/* SUBMIT */}
 
                   <button
                     type="submit"
@@ -993,7 +879,6 @@ export default function Login() {
                     {loading ? (
                       <>
                         <span className="w-5 h-5 border-2 border-white rounded-full border-t-transparent animate-spin" />
-
                         Signing in...
                       </>
                     ) : (
@@ -1004,7 +889,6 @@ export default function Login() {
                           size={18}
                           className="transition-transform group-hover:translate-x-1"
                         />
-
                       </>
                     )}
 
@@ -1012,30 +896,22 @@ export default function Login() {
 
                 </form>
 
-                {/* ==================================================
-                    TRUST FEATURES
-                ================================================== */}
+                {/* TRUST FEATURES */}
 
                 <div className="grid grid-cols-3 gap-3 pt-6 mt-7 border-t border-slate-100">
 
                   <TrustItem
-                    icon={
-                      <ShieldCheck size={16} />
-                    }
+                    icon={<ShieldCheck size={16} />}
                     text="Secure"
                   />
 
                   <TrustItem
-                    icon={
-                      <Zap size={16} />
-                    }
+                    icon={<Zap size={16} />}
                     text="Fast"
                   />
 
                   <TrustItem
-                    icon={
-                      <Headphones size={16} />
-                    }
+                    icon={<Headphones size={16} />}
                     text="Support"
                   />
 
@@ -1045,23 +921,17 @@ export default function Login() {
 
             </div>
 
-            {/* ==================================================
-                FOOTER
-            ================================================== */}
+            {/* FOOTER */}
 
             <div className="mt-6 text-center">
 
               <p className="text-xs text-slate-400">
-
                 © {new Date().getFullYear()} ReadyTech Solutions.
                 All rights reserved.
-
               </p>
 
               <p className="mt-1 text-[11px] text-slate-300">
-
                 CRM Platform • Secure Business Management
-
               </p>
 
             </div>
@@ -1089,9 +959,7 @@ function FeatureCard({
     <div className="p-4 transition-all duration-200 border rounded-2xl bg-white/[0.045] border-white/10 backdrop-blur-md hover:bg-white/[0.08]">
 
       <div className="flex items-center justify-center w-9 h-9 mb-3 text-indigo-300 border rounded-xl bg-indigo-500/10 border-indigo-400/10">
-
         {icon}
-
       </div>
 
       <h3 className="text-sm font-bold text-white">
