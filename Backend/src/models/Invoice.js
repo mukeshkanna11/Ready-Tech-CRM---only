@@ -145,6 +145,33 @@ const invoiceSchema = new mongoose.Schema(
       index: true,
     },
 
+    // ====================================================
+    // AD-HOC CLIENT SNAPSHOT
+    // ====================================================
+    //
+    // Set only for invoices raised against a new client
+    // that is not in the CRM. Stays null for the normal
+    // company/contact flow.
+    //
+    // ====================================================
+
+    billTo: {
+      type: {
+        name: { type: String, trim: true },
+        email: { type: String, trim: true, lowercase: true },
+        phone: { type: String, trim: true },
+        gstin: { type: String, trim: true, uppercase: true },
+        billingAddress: { type: String, trim: true },
+        shippingAddress: { type: String, trim: true },
+        city: { type: String, trim: true },
+        state: { type: String, trim: true },
+        country: { type: String, trim: true },
+        postalCode: { type: String, trim: true },
+      },
+      default: null,
+      _id: false,
+    },
+
     owner: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',

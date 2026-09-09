@@ -38,8 +38,33 @@ const item = z.object({
 //
 // ======================================================
 
+// ======================================================
+// AD-HOC (NON-CRM) CLIENT SNAPSHOT
+// ======================================================
+//
+// Used when an invoice is raised for a brand-new client
+// that does not exist in the CRM yet. Ignored when a
+// company/contact reference is supplied.
+//
+// ======================================================
+
+const billTo = z.object({
+  name: z.string().max(200),
+  email: z.string().email().max(200).optional().or(z.literal('')),
+  phone: z.string().max(30).optional(),
+  gstin: z.string().max(20).optional(),
+  billingAddress: z.string().max(500).optional(),
+  shippingAddress: z.string().max(500).optional(),
+  city: z.string().max(120).optional(),
+  state: z.string().max(120).optional(),
+  country: z.string().max(120).optional(),
+  postalCode: z.string().max(20).optional(),
+});
+
 const invoiceSchema = z.object({
   invoiceNumber: z.string().max(16).optional(),
+
+  billTo: billTo.nullish(),
 
   quotation: objectId.nullish(),
   salesOrder: objectId.nullish(),

@@ -126,6 +126,10 @@ const customerLabel = (invoice) => {
     return invoice.company.name;
   }
 
+  if (invoice?.billTo?.name) {
+    return invoice.billTo.name;
+  }
+
   const contact = invoice?.contact;
 
   const name = [contact?.firstName, contact?.lastName]
@@ -146,7 +150,22 @@ const emptyItem = () => ({
   taxRate: 18,
 });
 
+const emptyBillTo = () => ({
+  name: "",
+  email: "",
+  phone: "",
+  gstin: "",
+  billingAddress: "",
+  shippingAddress: "",
+  city: "",
+  state: "",
+  country: "India",
+  postalCode: "",
+});
+
 const emptyForm = () => ({
+  clientType: "EXISTING",
+  billTo: emptyBillTo(),
   company: "",
   contact: "",
   salesOrder: "",
@@ -715,6 +734,13 @@ function Invoices() {
     setFormError("");
 
     setForm({
+      clientType: invoice.billTo?.name
+        ? "NEW"
+        : "EXISTING",
+      billTo: {
+        ...emptyBillTo(),
+        ...(invoice.billTo || {}),
+      },
       company: getId(invoice.company),
       contact: getId(invoice.contact),
       salesOrder: getId(invoice.salesOrder),
@@ -757,7 +783,16 @@ function Invoices() {
   const saveInvoice = async () => {
     setFormError("");
 
-    if (!form.company && !form.contact) {
+    const isNewClient = form.clientType === "NEW";
+
+    if (isNewClient) {
+      if (!form.billTo.name.trim()) {
+        setFormError(
+          "Enter the customer / company name."
+        );
+        return;
+      }
+    } else if (!form.company && !form.contact) {
       setFormError(
         "Select a customer company or contact."
       );
@@ -778,8 +813,26 @@ function Invoices() {
     }
 
     const payload = {
-      company: form.company || undefined,
-      contact: form.contact || undefined,
+      company: isNewClient
+        ? undefined
+        : form.company || undefined,
+      contact: isNewClient
+        ? undefined
+        : form.contact || undefined,
+
+      billTo: isNewClient
+        ? Object.fromEntries(
+            Object.entries(form.billTo)
+              .map(([key, value]) => [
+                key,
+                typeof value === "string"
+                  ? value.trim()
+                  : value,
+              ])
+              .filter(([, value]) => value !== "")
+          )
+        : undefined,
+
       salesOrder: form.salesOrder || undefined,
 
       issueDate: form.issueDate || undefined,
@@ -1618,6 +1671,91 @@ function Invoices() {
             Customer
           </h3>
 
+          {/* CLIENT TYPE TOGGLE */}
+
+          <div className="mb-4 inline-flex rounded-xl border border-slate-200 bg-slate-50 p-1">
+            {[
+              { key: "EXISTING", label: "Existing Client" },
+              { key: "NEW", label: "New Client" },
+            ].map(({ key, label }) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() =>
+                  setField("clientType", key)
+                }
+                className={`rounded-lg px-4 py-2 text-xs font-bold transition ${
+                  form.clientType === key
+                    ? "bg-white text-slate-900 shadow-sm"
+                    : "text-slate-500 hover:text-slate-700"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {form.clientType === "NEW" ? (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {[
+                {
+                  key: "name",
+                  label: "Customer / Company Name",
+                  required: true,
+                },
+                { key: "email", label: "Email", type: "email" },
+                { key: "phone", label: "Phone" },
+                { key: "gstin", label: "GSTIN" },
+                { key: "city", label: "City" },
+                { key: "state", label: "State" },
+                { key: "country", label: "Country" },
+                { key: "postalCode", label: "Postal Code" },
+              ].map(({ key, label, required, type }) => (
+                <Field
+                  key={key}
+                  label={label}
+                  required={required}
+                >
+                  <input
+                    type={type || "text"}
+                    value={form.billTo[key]}
+                    onChange={(event) =>
+                      setField("billTo", {
+                        ...form.billTo,
+                        [key]: event.target.value,
+                      })
+                    }
+                    className={INPUT_CLASS}
+                  />
+                </Field>
+              ))}
+
+              {[
+                {
+                  key: "billingAddress",
+                  label: "Billing Address",
+                },
+                {
+                  key: "shippingAddress",
+                  label: "Shipping Address",
+                },
+              ].map(({ key, label }) => (
+                <Field key={key} label={label}>
+                  <textarea
+                    rows={2}
+                    value={form.billTo[key]}
+                    onChange={(event) =>
+                      setField("billTo", {
+                        ...form.billTo,
+                        [key]: event.target.value,
+                      })
+                    }
+                    className={INPUT_CLASS}
+                  />
+                </Field>
+              ))}
+            </div>
+          ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Field label="Customer Company" required>
               <select
@@ -1678,7 +1816,10 @@ function Invoices() {
                 ))}
               </select>
             </Field>
+          </div>
+          )}
 
+          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Field
               label="Linked Sales Order"
               hint="Optional reference."

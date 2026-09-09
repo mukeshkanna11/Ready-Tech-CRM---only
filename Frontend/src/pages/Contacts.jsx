@@ -48,7 +48,7 @@ const CONTACTS_ENDPOINT = `${API_BASE}/contacts`;
 
 const COMPANIES_ENDPOINT = `${API_BASE}/companies`;
 
-const USERS_ENDPOINT = `${API_BASE}/admin/users`;
+const USERS_ENDPOINT = `${API_BASE}/users`;
 
 // ======================================================
 // OPTIONS

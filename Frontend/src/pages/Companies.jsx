@@ -2009,7 +2009,7 @@ export default function Companies() {
         await apiRequest(
           `${COMPANIES_ENDPOINT}/${editingCompany._id}`,
           {
-            method: "PATCH",
+            method: "PUT",
             body: JSON.stringify(
               payload
             ),
