@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+
 import {
   Activity,
   ArrowDownRight,
@@ -12,27 +18,29 @@ import {
   ContactRound,
   Flame,
   LayoutDashboard,
+  Loader2,
   Mail,
+  MessageCircle,
   Phone,
   RefreshCw,
+  Send,
   Target,
   TrendingUp,
   Trophy,
   UserRound,
   Users,
+  X,
   XCircle,
   Zap,
 } from "lucide-react";
 
 import { useNavigate } from "react-router-dom";
 
+import API from "../services/api";
+
 // ======================================================
 // CONFIG
 // ======================================================
-
-const API_BASE =
-  import.meta.env.VITE_API_URL ||
-  "http://localhost:5000/api/v1";
 
 const REQUEST_TIMEOUT = 15000;
 
@@ -40,125 +48,39 @@ const REQUEST_TIMEOUT = 15000;
 // API HELPER
 // ======================================================
 
-const getToken = () => {
-  const tokenKeys = [
-    "accessToken",
-    "token",
-    "access_token",
-  ];
-
-  for (const key of tokenKeys) {
-    const value = localStorage.getItem(key);
-
-    if (
-      value &&
-      typeof value === "string" &&
-      value.trim() &&
-      value !== "null" &&
-      value !== "undefined"
-    ) {
-      // Prevent double "Bearer Bearer ..."
-      return value.replace(/^Bearer\\s+/i, "").trim();
-    }
-  }
-
-  return "";
-};
-
-const clearAuthStorage = () => {
-  [
-    "accessToken",
-    "token",
-    "access_token",
-    "refreshToken",
-    "refresh_token",
-    "user",
-  ].forEach((key) => {
-    localStorage.removeItem(key);
-  });
-};
-
 const apiFetch = async (endpoint, options = {}) => {
-  const controller = new AbortController();
-
-  const timeout = setTimeout(() => {
-    controller.abort();
-  }, REQUEST_TIMEOUT);
-
   try {
-    const token = getToken();
+    const response = await API.request({
+      url: endpoint,
+      method: options.method || "GET",
+      data: options.body
+        ? typeof options.body === "string"
+          ? JSON.parse(options.body)
+          : options.body
+        : undefined,
+      headers: options.headers,
+      timeout: REQUEST_TIMEOUT,
+    });
 
-    if (!token) {
-      clearAuthStorage();
-      throw new Error(
-        "Authentication required. Please login again."
-      );
-    }
-
-    const response = await fetch(
-      `${API_BASE}${endpoint}`,
-      {
-        ...options,
-        signal: controller.signal,
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-          ...(options.headers || {}),
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-
-    const contentType =
-      response.headers.get("content-type") || "";
-
-    let result;
-
-    if (contentType.includes("application/json")) {
-      result = await response.json();
-    } else {
-      const text = await response.text();
-
-      try {
-        result = JSON.parse(text);
-      } catch {
-        result = { message: text };
-      }
-    }
-
-    if (response.status === 401) {
-      console.error(
-        `Unauthorized API request: ${endpoint}`,
-        result
-      );
-
-      clearAuthStorage();
-
-      throw new Error(
-        result?.message ||
-          "Your session has expired. Please login again."
-      );
-    }
-
-    if (!response.ok) {
-      throw new Error(
-        result?.message ||
-          result?.error ||
-          `Request failed with status ${response.status}`
-      );
-    }
-
-    return result;
+    return response.data;
   } catch (error) {
-    if (error?.name === "AbortError") {
+    if (
+      error?.code === "ECONNABORTED" ||
+      error?.code === "ETIMEDOUT"
+    ) {
       throw new Error(
-        "Request timed out. Please try again."
+        "Request timed out. Please try again.",
+        { cause: error }
       );
     }
 
-    throw error;
-  } finally {
-    clearTimeout(timeout);
+    throw new Error(
+      error?.crmMessage ||
+        error?.response?.data?.message ||
+        error?.message ||
+        `Request to ${endpoint} failed.`,
+      { cause: error }
+    );
   }
 };
 
@@ -206,6 +128,14 @@ const formatCurrency = (value = 0) => {
   }
 
   return `₹${amount.toLocaleString("en-IN")}`;
+};
+
+const formatFullCurrency = (value = 0) => {
+  const amount = Number(value) || 0;
+
+  return `₹${amount.toLocaleString("en-IN", {
+    maximumFractionDigits: 0,
+  })}`;
 };
 
 const formatDate = (date) => {
@@ -283,6 +213,14 @@ const getGreeting = () => {
   return "Good evening";
 };
 
+const getSourceLabel = (source = "") => {
+  return String(source)
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (char) =>
+      char.toUpperCase()
+    );
+};
+
 // ======================================================
 // STATUS CONFIG
 // ======================================================
@@ -292,42 +230,49 @@ const STATUS_CONFIG = {
     label: "New",
     className:
       "bg-blue-50 text-blue-700 border-blue-100",
+    dot: "bg-blue-500",
   },
 
   CONTACTED: {
     label: "Contacted",
     className:
       "bg-cyan-50 text-cyan-700 border-cyan-100",
+    dot: "bg-cyan-500",
   },
 
   QUALIFIED: {
     label: "Qualified",
     className:
       "bg-violet-50 text-violet-700 border-violet-100",
+    dot: "bg-violet-500",
   },
 
   PROPOSAL: {
     label: "Proposal",
     className:
       "bg-amber-50 text-amber-700 border-amber-100",
+    dot: "bg-amber-500",
   },
 
   NEGOTIATION: {
     label: "Negotiation",
     className:
       "bg-orange-50 text-orange-700 border-orange-100",
+    dot: "bg-orange-500",
   },
 
   WON: {
     label: "Won",
     className:
       "bg-emerald-50 text-emerald-700 border-emerald-100",
+    dot: "bg-emerald-500",
   },
 
   LOST: {
     label: "Lost",
     className:
       "bg-rose-50 text-rose-700 border-rose-100",
+    dot: "bg-rose-500",
   },
 };
 
@@ -341,137 +286,19 @@ function StatusBadge({ status }) {
       label: getStatusLabel(status),
       className:
         "bg-slate-50 text-slate-600 border-slate-200",
+      dot: "bg-slate-400",
     };
 
   return (
     <span
-      className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-bold ${config.className}`}
+      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-extrabold ${config.className}`}
     >
+      <span
+        className={`h-1.5 w-1.5 rounded-full ${config.dot}`}
+      />
+
       {config.label}
     </span>
-  );
-}
-
-// ======================================================
-// STAT CARD
-// ======================================================
-
-function StatCard({
-  title,
-  value,
-  subtitle,
-  icon: Icon,
-  trend,
-  trendLabel,
-  iconClass,
-}) {
-  const positive =
-    typeof trend === "number" ? trend >= 0 : true;
-
-  return (
-    <div className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
-      <div className="absolute -right-10 -top-10 h-28 w-28 rounded-full bg-slate-100 opacity-50 transition-transform duration-500 group-hover:scale-150" />
-
-      <div className="relative flex items-start justify-between">
-        <div>
-          <p className="text-sm font-medium text-slate-500">
-            {title}
-          </p>
-
-          <h3 className="mt-2 text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">
-            {value}
-          </h3>
-
-          {subtitle && (
-            <p className="mt-1 text-xs text-slate-400">
-              {subtitle}
-            </p>
-          )}
-        </div>
-
-        <div
-          className={`flex h-11 w-11 items-center justify-center rounded-xl ${iconClass}`}
-        >
-          <Icon size={21} strokeWidth={2.2} />
-        </div>
-      </div>
-
-      {trend !== undefined && (
-        <div className="relative mt-4 flex items-center gap-2">
-          <span
-            className={`inline-flex items-center gap-1 text-xs font-bold ${
-              positive
-                ? "text-emerald-600"
-                : "text-rose-600"
-            }`}
-          >
-            {positive ? (
-              <ArrowUpRight size={14} />
-            ) : (
-              <ArrowDownRight size={14} />
-            )}
-
-            {Math.abs(trend)}%
-          </span>
-
-          <span className="text-xs text-slate-400">
-            {trendLabel || "vs last period"}
-          </span>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ======================================================
-// SKELETON
-// ======================================================
-
-function DashboardSkeleton() {
-  return (
-    <div className="space-y-6">
-      <div className="h-44 animate-pulse rounded-3xl bg-slate-200" />
-
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {[1, 2, 3, 4].map((item) => (
-          <div
-            key={item}
-            className="h-36 animate-pulse rounded-2xl bg-slate-200"
-          />
-        ))}
-      </div>
-
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
-        <div className="h-96 animate-pulse rounded-2xl bg-slate-200 xl:col-span-2" />
-        <div className="h-96 animate-pulse rounded-2xl bg-slate-200" />
-      </div>
-    </div>
-  );
-}
-
-// ======================================================
-// EMPTY STATE
-// ======================================================
-
-function EmptyState({
-  icon: Icon = Activity,
-  title,
-  description,
-}) {
-  return (
-    <div className="flex min-h-[220px] flex-col items-center justify-center px-5 text-center">
-      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
-        <Icon size={25} />
-      </div>
-
-      <h4 className="mt-4 text-sm font-bold text-slate-700">
-        {title}
-      </h4>
-
-      <p className="mt-1 max-w-xs text-xs leading-5 text-slate-400">
-        {description}
-      </p>
-    </div>
   );
 }
 
@@ -488,17 +315,17 @@ function SectionHeader({
   return (
     <div className="flex items-center justify-between gap-4">
       <div className="flex min-w-0 items-center gap-3">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
-          <Icon size={19} />
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-700">
+          <Icon size={18} strokeWidth={2.2} />
         </div>
 
         <div className="min-w-0">
-          <h3 className="truncate text-sm font-black text-slate-900">
+          <h3 className="truncate text-sm font-black tracking-tight text-slate-900">
             {title}
           </h3>
 
           {description && (
-            <p className="mt-0.5 truncate text-xs text-slate-400">
+            <p className="mt-0.5 truncate text-[11px] font-medium text-slate-500">
               {description}
             </p>
           )}
@@ -506,6 +333,140 @@ function SectionHeader({
       </div>
 
       {action}
+    </div>
+  );
+}
+
+// ======================================================
+// KPI CARD
+// ======================================================
+
+function KPI({
+  title,
+  value,
+  subtitle,
+  icon: Icon,
+  iconClass,
+  accentClass,
+}) {
+  return (
+    <div className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-slate-300 hover:shadow-xl">
+      <div
+        className={`absolute inset-x-0 top-0 h-1 ${accentClass}`}
+      />
+
+      <div className="flex items-start justify-between">
+        <div className="min-w-0">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+            {title}
+          </p>
+
+          <p className="mt-2 text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">
+            {value}
+          </p>
+
+          <p className="mt-1 truncate text-xs font-medium text-slate-500">
+            {subtitle}
+          </p>
+        </div>
+
+        <div
+          className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${iconClass}`}
+        >
+          <Icon size={20} strokeWidth={2.3} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ======================================================
+// EMPTY STATE
+// ======================================================
+
+function EmptyState({
+  icon: Icon = Activity,
+  title,
+  description,
+}) {
+  return (
+    <div className="flex min-h-[190px] flex-col items-center justify-center px-5 text-center">
+      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
+        <Icon size={24} />
+      </div>
+
+      <h4 className="mt-4 text-sm font-black text-slate-700">
+        {title}
+      </h4>
+
+      <p className="mt-1 max-w-xs text-xs leading-5 text-slate-500">
+        {description}
+      </p>
+    </div>
+  );
+}
+
+// ======================================================
+// SKELETON
+// ======================================================
+
+function DashboardSkeleton() {
+  return (
+    <div className="min-h-screen bg-slate-50 p-4 sm:p-6 lg:p-8">
+      <div className="mx-auto max-w-[1600px] space-y-6">
+        <div className="h-64 animate-pulse rounded-3xl bg-slate-200" />
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {[1, 2, 3, 4].map((item) => (
+            <div
+              key={item}
+              className="h-36 animate-pulse rounded-2xl bg-slate-200"
+            />
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+          <div className="h-[430px] animate-pulse rounded-2xl bg-slate-200 xl:col-span-2" />
+          <div className="h-[430px] animate-pulse rounded-2xl bg-slate-200" />
+        </div>
+
+        <div className="h-96 animate-pulse rounded-2xl bg-slate-200" />
+      </div>
+    </div>
+  );
+}
+
+// ======================================================
+// ERROR STATE
+// ======================================================
+
+function DashboardError({ error, onRetry }) {
+  return (
+    <div className="min-h-screen bg-slate-50 p-4 sm:p-6 lg:p-8">
+      <div className="mx-auto flex min-h-[75vh] max-w-7xl items-center justify-center">
+        <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-xl">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-rose-50 text-rose-600">
+            <XCircle size={30} />
+          </div>
+
+          <h2 className="mt-5 text-xl font-black text-slate-900">
+            Dashboard unavailable
+          </h2>
+
+          <p className="mt-2 text-sm leading-6 text-slate-500">
+            {error}
+          </p>
+
+          <button
+            type="button"
+            onClick={onRetry}
+            className="mt-6 inline-flex items-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-bold text-white transition hover:bg-slate-800"
+          >
+            <RefreshCw size={16} />
+            Try again
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -524,10 +485,33 @@ export default function Dashboard() {
   const [refreshing, setRefreshing] =
     useState(false);
 
-  const [error, setError] = useState("");
+    const [error, setError] = useState("");
 
   // ====================================================
-  // FETCH DATA
+  // HELPDESK CHAT STATE
+  // ====================================================
+
+  const [chatOpen, setChatOpen] = useState(false);
+
+  const [chatForm, setChatForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    companyName: "",
+    message: "",
+  });
+
+  const [chatSubmitting, setChatSubmitting] =
+    useState(false);
+
+  const [chatSuccess, setChatSuccess] =
+    useState("");
+
+  const [chatError, setChatError] =
+    useState("");
+
+  // ====================================================
+  // FETCH DASHBOARD DATA
   // ====================================================
 
   const fetchDashboardData = useCallback(
@@ -541,19 +525,36 @@ export default function Dashboard() {
 
         setError("");
 
-        const [
-          leadsResponse,
-          contactsResponse,
-        ] = await Promise.all([
-          apiFetch("/leads?limit=200"),
-          apiFetch("/contacts?limit=200"),
-        ]);
+        // Parallel: one failing request must not block the other.
+        const [leadsResult, contactsResult] =
+          await Promise.allSettled([
+            apiFetch("/leads?limit=200"),
+            apiFetch("/contacts?limit=200"),
+          ]);
 
-        setLeads(getArray(leadsResponse));
-        setContacts(getArray(contactsResponse));
+        if (leadsResult.status === "fulfilled") {
+          setLeads(getArray(leadsResult.value));
+        }
+
+        if (contactsResult.status === "fulfilled") {
+          setContacts(
+            getArray(contactsResult.value)
+          );
+        }
+
+        const failures = [
+          leadsResult.status === "rejected" &&
+            (leadsResult.reason?.message ||
+              "Unable to load leads."),
+          contactsResult.status === "rejected" &&
+            (contactsResult.reason?.message ||
+              "Unable to load contacts."),
+        ].filter(Boolean);
+
+        setError(failures.join(" "));
       } catch (err) {
         console.error(
-          "Dashboard fetch error:",
+          "[DASHBOARD] Fetch error:",
           err
         );
 
@@ -569,9 +570,218 @@ export default function Dashboard() {
     []
   );
 
+  // ====================================================
+  // INITIAL LOAD
+  // ====================================================
+
   useEffect(() => {
     fetchDashboardData();
   }, [fetchDashboardData]);
+
+  // ====================================================
+  // HELPDESK CHAT - RESET
+  // ====================================================
+
+  const resetChatForm = useCallback(() => {
+    setChatForm({
+      name: "",
+      email: "",
+      phone: "",
+      companyName: "",
+      message: "",
+    });
+  }, []);
+
+  // ====================================================
+  // HELPDESK CHAT - VALIDATION
+  // ====================================================
+
+  const validateChatForm = useCallback(() => {
+    const name = chatForm.name.trim();
+    const email = chatForm.email.trim();
+    const message = chatForm.message.trim();
+
+    if (!name) {
+      return "Please enter your name.";
+    }
+
+    if (name.length < 2) {
+      return "Name must contain at least 2 characters.";
+    }
+
+    if (!email) {
+      return "Please enter your email address.";
+    }
+
+    const emailPattern =
+      /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!emailPattern.test(email)) {
+      return "Please provide a valid email address.";
+    }
+
+    if (!message) {
+      return "Please enter your message.";
+    }
+
+    return "";
+  }, [chatForm]);
+
+  // ====================================================
+  // HELPDESK CHAT - SUBMIT
+  // ====================================================
+
+  const handleChatSubmit = useCallback(
+    async (event) => {
+      event.preventDefault();
+
+      if (chatSubmitting) {
+        return;
+      }
+
+      setChatError("");
+      setChatSuccess("");
+
+      // --------------------------------------------------
+      // CLIENT-SIDE VALIDATION
+      // --------------------------------------------------
+
+      const validationError =
+        validateChatForm();
+
+      if (validationError) {
+        setChatError(validationError);
+        return;
+      }
+
+      // --------------------------------------------------
+      // CLEAN PAYLOAD
+      // --------------------------------------------------
+
+      const payload = {
+        name: chatForm.name.trim(),
+        email: chatForm.email.trim().toLowerCase(),
+        phone: chatForm.phone.trim(),
+        companyName:
+          chatForm.companyName.trim(),
+        message: chatForm.message.trim(),
+      };
+
+      try {
+        setChatSubmitting(true);
+
+        // ------------------------------------------------
+        // EXISTING BACKEND ENDPOINT
+        //
+        // POST /api/v1/email/enquiry
+        //
+        // Backend handles:
+        // Website Enquiry
+        //       ↓
+        // Create / Update Lead
+        //       ↓
+        // source = WEBSITE
+        // status = NEW for new lead
+        //       ↓
+        // Resend Email
+        // ------------------------------------------------
+
+        const response = await apiFetch(
+          "/email/enquiry",
+          {
+            method: "POST",
+            body: payload,
+          }
+        );
+
+        // ------------------------------------------------
+        // SUCCESS
+        // ------------------------------------------------
+
+        const successMessage =
+          response?.message ||
+          "Your enquiry has been submitted successfully.";
+
+        setChatSuccess(successMessage);
+
+        // Clear submitted form.
+        resetChatForm();
+
+        // ------------------------------------------------
+        // REFRESH DASHBOARD
+        // ------------------------------------------------
+        // Newly created website lead will appear in:
+        // - Total Leads
+        // - Recent Leads
+        // - Lead Sources
+        // - Pipeline
+        // ------------------------------------------------
+
+        try {
+          await fetchDashboardData(true);
+        } catch (refreshError) {
+          // Lead submission already succeeded.
+          // Dashboard refresh failure should NOT
+          // show the enquiry as failed.
+          console.error(
+            "Dashboard refresh after enquiry failed:",
+            refreshError
+          );
+        }
+
+      } catch (err) {
+        console.error(
+          "Helpdesk enquiry submission error:",
+          err
+        );
+
+        setChatError(
+          err?.message ||
+            "Unable to submit your enquiry. Please try again."
+        );
+      } finally {
+        setChatSubmitting(false);
+      }
+    },
+    [
+      chatForm,
+      chatSubmitting,
+      validateChatForm,
+      resetChatForm,
+      fetchDashboardData,
+    ]
+  );
+
+const handleChatChange = (event) => {
+  const { name, value } = event.target;
+
+  setChatForm((previous) => ({
+    ...previous,
+    [name]: value,
+  }));
+
+  if (chatError) {
+    setChatError("");
+  }
+
+  if (chatSuccess) {
+    setChatSuccess("");
+  }
+};
+
+  // ====================================================
+  // HELPDESK CHAT - OPEN / CLOSE
+  // ====================================================
+
+  const openHelpdesk = useCallback(() => {
+    setChatOpen(true);
+  }, []);
+
+  const closeHelpdesk = useCallback(() => {
+    setChatOpen(false);
+    setChatError("");
+    setChatSuccess("");
+  }, []);
 
   // ====================================================
   // CURRENT USER
@@ -591,6 +801,9 @@ export default function Dashboard() {
     currentUser?.name ||
     currentUser?.user?.name ||
     "CRM User";
+
+  const firstName =
+    userName.split(" ")[0] || "there";
 
   // ====================================================
   // LEAD METRICS
@@ -642,6 +855,12 @@ export default function Dashboard() {
         0
       );
 
+    const totalValue = leads.reduce(
+      (sum, lead) =>
+        sum + Number(lead.value || 0),
+      0
+    );
+
     const conversionRate =
       total > 0
         ? Math.round((won / total) * 100)
@@ -655,6 +874,7 @@ export default function Dashboard() {
       qualified,
       pipelineValue,
       wonValue,
+      totalValue,
       conversionRate,
     };
   }, [leads]);
@@ -718,7 +938,7 @@ export default function Dashboard() {
   }, [leads]);
 
   // ====================================================
-  // LEAD SOURCES
+  // SOURCE STATS
   // ====================================================
 
   const sourceStats = useMemo(() => {
@@ -732,7 +952,7 @@ export default function Dashboard() {
 
     return Object.entries(map)
       .sort((a, b) => b[1] - a[1])
-      .slice(0, 5);
+      .slice(0, 6);
   }, [leads]);
 
   const maxSourceCount =
@@ -749,7 +969,7 @@ export default function Dashboard() {
           new Date(b.createdAt || 0) -
           new Date(a.createdAt || 0)
       )
-      .slice(0, 6);
+      .slice(0, 7);
   }, [leads]);
 
   // ====================================================
@@ -785,7 +1005,12 @@ export default function Dashboard() {
 
         return (
           !Number.isNaN(time) &&
-          time >= now - 24 * 60 * 60 * 1000
+          time >=
+            now -
+              24 *
+                60 *
+                60 *
+                1000
         );
       })
       .sort(
@@ -797,35 +1022,35 @@ export default function Dashboard() {
   }, [leads]);
 
   // ====================================================
-  // QUICK ACTION
+  // QUICK ACTIONS
   // ====================================================
 
   const quickActions = [
     {
-      label: "New Lead",
-      description: "Create sales opportunity",
+      label: "Create Lead",
+      description: "Add a new sales opportunity",
       icon: Target,
       action: () => navigate("/leads"),
       className:
-        "bg-indigo-50 text-indigo-700 hover:bg-indigo-100",
+        "from-indigo-50 to-white text-indigo-700",
     },
 
     {
-      label: "New Contact",
-      description: "Add business contact",
+      label: "Add Contact",
+      description: "Create a customer contact",
       icon: ContactRound,
       action: () => navigate("/contacts"),
       className:
-        "bg-emerald-50 text-emerald-700 hover:bg-emerald-100",
+        "from-emerald-50 to-white text-emerald-700",
     },
 
     {
-      label: "View Pipeline",
-      description: "Track sales progress",
+      label: "Sales Pipeline",
+      description: "Track your opportunities",
       icon: TrendingUp,
       action: () => navigate("/leads"),
       className:
-        "bg-amber-50 text-amber-700 hover:bg-amber-100",
+        "from-amber-50 to-white text-amber-700",
     },
   ];
 
@@ -834,47 +1059,25 @@ export default function Dashboard() {
   // ====================================================
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-slate-50 p-4 sm:p-6 lg:p-8">
-        <DashboardSkeleton />
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   // ====================================================
   // ERROR
   // ====================================================
 
-  if (error && !leads.length && !contacts.length) {
+  if (
+    error &&
+    !leads.length &&
+    !contacts.length
+  ) {
     return (
-      <div className="min-h-screen bg-slate-50 p-4 sm:p-6 lg:p-8">
-        <div className="mx-auto flex min-h-[70vh] max-w-7xl items-center justify-center">
-          <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-xl">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-rose-50 text-rose-600">
-              <XCircle size={30} />
-            </div>
-
-            <h2 className="mt-5 text-xl font-black text-slate-900">
-              Dashboard unavailable
-            </h2>
-
-            <p className="mt-2 text-sm leading-6 text-slate-500">
-              {error}
-            </p>
-
-            <button
-              type="button"
-              onClick={() =>
-                fetchDashboardData(true)
-              }
-              className="mt-6 inline-flex items-center gap-2 rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white transition hover:bg-slate-800"
-            >
-              <RefreshCw size={16} />
-              Try again
-            </button>
-          </div>
-        </div>
-      </div>
+      <DashboardError
+        error={error}
+        onRetry={() =>
+          fetchDashboardData(true)
+        }
+      />
     );
   }
 
@@ -883,47 +1086,65 @@ export default function Dashboard() {
   // ====================================================
 
   return (
-    <div className="min-h-screen bg-[#f7f8fc]">
+    <div className="min-h-screen bg-slate-50 text-slate-900">
       <main className="mx-auto max-w-[1600px] space-y-6 p-4 sm:p-6 lg:p-8">
+
         {/* ==================================================
-            HERO
+            PREMIUM HERO
         ================================================== */}
 
-        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 p-6 text-white shadow-2xl sm:p-8">
-          {/* decorative */}
-          <div className="absolute -right-20 -top-24 h-72 w-72 rounded-full bg-indigo-500/20 blur-3xl" />
+        <section className="relative overflow-hidden rounded-[28px] bg-slate-950 shadow-2xl">
+          {/* Background effects */}
 
-          <div className="absolute -bottom-32 left-1/3 h-72 w-72 rounded-full bg-violet-500/10 blur-3xl" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.35),transparent_38%),radial-gradient(circle_at_bottom_left,rgba(139,92,246,0.18),transparent_35%)]" />
 
-          <div className="absolute right-10 top-10 hidden h-24 w-24 rounded-full border border-white/10 lg:block" />
+          <div className="absolute right-[-100px] top-[-100px] h-72 w-72 rounded-full border border-white/10" />
 
-          <div className="relative z-10 flex flex-col justify-between gap-8 lg:flex-row lg:items-center">
+          <div className="absolute right-[-60px] top-[-60px] h-52 w-52 rounded-full border border-white/10" />
+
+          <div className="absolute bottom-[-120px] left-[35%] h-72 w-72 rounded-full bg-indigo-500/10 blur-3xl" />
+
+          <div className="relative z-10 grid gap-8 p-6 sm:p-8 lg:grid-cols-[1fr_auto] lg:p-10">
+
+            {/* Hero content */}
+
             <div className="max-w-3xl">
-              <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1.5 text-xs font-bold text-indigo-100 backdrop-blur">
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 backdrop-blur">
                 <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
-                CRM Overview
+
+                <span className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-indigo-200">
+                  CRM Command Center
+                </span>
               </div>
 
-              <h1 className="text-3xl font-black tracking-tight sm:text-4xl">
-                {getGreeting()}, {userName.split(" ")[0]} 👋
+              <h1 className="mt-5 text-3xl font-black tracking-tight text-white sm:text-4xl lg:text-5xl">
+                {getGreeting()},
+                <span className="text-indigo-300">
+                  {" "}
+                  {firstName}
+                </span>
               </h1>
 
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-300 sm:text-base">
-                Stay on top of your sales pipeline,
-                manage customer relationships and
-                turn opportunities into revenue.
+              <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">
+                Monitor your sales pipeline,
+                customer relationships and
+                revenue performance from one
+                centralized workspace.
               </p>
 
-              <div className="mt-6 flex flex-wrap gap-3">
+              {/* Hero actions */}
+
+              <div className="mt-7 flex flex-wrap gap-3">
                 <button
                   type="button"
                   onClick={() =>
                     navigate("/leads")
                   }
-                  className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-slate-900 shadow-lg transition hover:-translate-y-0.5 hover:bg-slate-100"
+                  className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-extrabold text-slate-950 shadow-xl transition hover:-translate-y-0.5 hover:bg-slate-100"
                 >
                   <Target size={17} />
                   Manage Leads
+                  <ChevronRight size={15} />
                 </button>
 
                 <button
@@ -931,29 +1152,73 @@ export default function Dashboard() {
                   onClick={() =>
                     navigate("/contacts")
                   }
-                  className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-4 py-2.5 text-sm font-bold text-white backdrop-blur transition hover:bg-white/15"
+                  className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-bold text-white backdrop-blur transition hover:bg-white/10"
                 >
                   <Users size={17} />
                   View Contacts
                 </button>
               </div>
+
+              {/* Mini stats */}
+
+              <div className="mt-8 flex flex-wrap gap-6">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                    Open Pipeline
+                  </p>
+
+                  <p className="mt-1 text-lg font-black text-white">
+                    {formatCurrency(
+                      leadMetrics.pipelineValue
+                    )}
+                  </p>
+                </div>
+
+                <div className="h-10 w-px bg-white/10" />
+
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                    Active Leads
+                  </p>
+
+                  <p className="mt-1 text-lg font-black text-white">
+                    {leadMetrics.open}
+                  </p>
+                </div>
+
+                <div className="h-10 w-px bg-white/10" />
+
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                    Customers
+                  </p>
+
+                  <p className="mt-1 text-lg font-black text-white">
+                    {contactMetrics.active}
+                  </p>
+                </div>
+              </div>
             </div>
 
-            <div className="hidden shrink-0 lg:block">
-              <div className="relative flex h-40 w-40 items-center justify-center rounded-full border border-white/10 bg-white/5 backdrop-blur">
-                <div className="flex h-28 w-28 flex-col items-center justify-center rounded-full border border-indigo-400/20 bg-indigo-500/10">
+            {/* Win rate */}
+
+            <div className="flex items-center justify-center lg:pr-8">
+              <div className="relative flex h-48 w-48 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] shadow-2xl backdrop-blur-xl">
+                <div className="absolute inset-3 rounded-full border border-indigo-400/10" />
+
+                <div className="flex h-36 w-36 flex-col items-center justify-center rounded-full bg-gradient-to-br from-indigo-500/20 to-violet-500/10 shadow-inner">
                   <Zap
-                    size={26}
+                    size={24}
                     className="text-indigo-300"
                   />
 
-                  <span className="mt-1 text-2xl font-black">
+                  <p className="mt-1 text-4xl font-black text-white">
                     {leadMetrics.conversionRate}%
-                  </span>
+                  </p>
 
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                  <p className="text-[9px] font-extrabold uppercase tracking-[0.2em] text-slate-400">
                     Win Rate
-                  </span>
+                  </p>
                 </div>
               </div>
             </div>
@@ -961,21 +1226,31 @@ export default function Dashboard() {
         </section>
 
         {/* ==================================================
-            REFRESH / ERROR
+            REFRESH BAR
         ================================================== */}
 
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-xs text-slate-400">
+        <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+          <div className="flex items-center gap-2 text-[11px] font-semibold text-slate-500">
             <Clock3 size={14} />
 
-            Last updated{" "}
-            {new Date().toLocaleTimeString(
-              "en-IN",
-              {
-                hour: "2-digit",
-                minute: "2-digit",
-              }
-            )}
+            <span>
+              Dashboard overview
+            </span>
+
+            <span className="hidden text-slate-300 sm:inline">
+              •
+            </span>
+
+            <span className="hidden sm:inline">
+              Updated{" "}
+              {new Date().toLocaleTimeString(
+                "en-IN",
+                {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                }
+              )}
+            </span>
           </div>
 
           <button
@@ -984,7 +1259,7 @@ export default function Dashboard() {
             onClick={() =>
               fetchDashboardData(true)
             }
-            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-600 shadow-sm transition hover:border-slate-300 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex w-fit items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-600 shadow-sm transition hover:border-slate-300 hover:text-slate-950 disabled:cursor-not-allowed disabled:opacity-60"
           >
             <RefreshCw
               size={14}
@@ -997,63 +1272,59 @@ export default function Dashboard() {
 
             {refreshing
               ? "Refreshing..."
-              : "Refresh"}
+              : "Refresh dashboard"}
           </button>
         </div>
 
         {error && (
-          <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-700">
+          <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-semibold text-amber-700">
             {error}
           </div>
         )}
 
         {/* ==================================================
-            KPI CARDS
+            KPI
         ================================================== */}
 
         <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <StatCard
+          <KPI
             title="Total Leads"
             value={leadMetrics.total}
             subtitle={`${leadMetrics.open} active opportunities`}
             icon={Target}
-            trend={leadMetrics.total ? 12 : 0}
-            trendLabel="overall pipeline"
             iconClass="bg-indigo-50 text-indigo-600"
+            accentClass="bg-indigo-500"
           />
 
-          <StatCard
+          <KPI
             title="Total Contacts"
             value={contactMetrics.total}
             subtitle={`${contactMetrics.active} active contacts`}
             icon={ContactRound}
-            trend={contactMetrics.total ? 8 : 0}
-            trendLabel="customer database"
             iconClass="bg-emerald-50 text-emerald-600"
+            accentClass="bg-emerald-500"
           />
 
-          <StatCard
+          <KPI
             title="Pipeline Value"
             value={formatCurrency(
               leadMetrics.pipelineValue
             )}
-            subtitle="Open lead opportunities"
+            subtitle="Open opportunity value"
             icon={CircleDollarSign}
-            trend={leadMetrics.pipelineValue ? 15 : 0}
-            trendLabel="potential revenue"
             iconClass="bg-amber-50 text-amber-600"
+            accentClass="bg-amber-500"
           />
 
-          <StatCard
+          <KPI
             title="Won Revenue"
             value={formatCurrency(
               leadMetrics.wonValue
             )}
-            subtitle={`${leadMetrics.won} deals won`}
+            subtitle={`${leadMetrics.won} deals successfully won`}
             icon={Trophy}
-            trend={leadMetrics.won ? 10 : 0}
-            trendLabel="closed business"
             iconClass="bg-violet-50 text-violet-600"
+            accentClass="bg-violet-500"
           />
         </section>
 
@@ -1061,42 +1332,55 @@ export default function Dashboard() {
             QUICK ACTIONS
         ================================================== */}
 
-        <section className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          {quickActions.map(
-            ({
-              label,
-              description,
-              icon: Icon,
-              action,
-              className,
-            }) => (
-              <button
-                key={label}
-                type="button"
-                onClick={action}
-                className={`group flex items-center gap-4 rounded-2xl border border-slate-200 p-4 text-left transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg ${className}`}
-              >
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/80 shadow-sm">
-                  <Icon size={20} />
-                </div>
+        <section>
+          <div className="mb-4 flex items-center gap-2">
+            <Zap
+              size={15}
+              className="text-indigo-600"
+            />
 
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-black">
-                    {label}
-                  </p>
+            <p className="text-xs font-black uppercase tracking-wider text-slate-700">
+              Quick actions
+            </p>
+          </div>
 
-                  <p className="mt-0.5 text-xs opacity-70">
-                    {description}
-                  </p>
-                </div>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            {quickActions.map(
+              ({
+                label,
+                description,
+                icon: Icon,
+                action,
+                className,
+              }) => (
+                <button
+                  key={label}
+                  type="button"
+                  onClick={action}
+                  className={`group flex items-center gap-4 rounded-2xl border border-slate-200 bg-gradient-to-br p-4 text-left shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-slate-300 hover:shadow-lg ${className}`}
+                >
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm">
+                    <Icon size={20} />
+                  </div>
 
-                <ChevronRight
-                  size={18}
-                  className="transition-transform group-hover:translate-x-1"
-                />
-              </button>
-            )
-          )}
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-black">
+                      {label}
+                    </p>
+
+                    <p className="mt-0.5 text-[11px] font-medium opacity-70">
+                      {description}
+                    </p>
+                  </div>
+
+                  <ChevronRight
+                    size={17}
+                    className="transition-transform group-hover:translate-x-1"
+                  />
+                </button>
+              )
+            )}
+          </div>
         </section>
 
         {/* ==================================================
@@ -1104,68 +1388,81 @@ export default function Dashboard() {
         ================================================== */}
 
         <section className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+
           {/* PIPELINE */}
 
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm xl:col-span-2">
             <SectionHeader
               icon={TrendingUp}
               title="Sales Pipeline"
-              description="Lead distribution across every stage"
+              description="Opportunity distribution across every stage"
               action={
                 <button
                   type="button"
                   onClick={() =>
                     navigate("/leads")
                   }
-                  className="text-xs font-bold text-indigo-600 hover:text-indigo-700"
+                  className="inline-flex items-center gap-1 text-[11px] font-extrabold text-indigo-600 hover:text-indigo-700"
                 >
-                  View all
+                  View pipeline
+                  <ChevronRight size={13} />
                 </button>
               }
             />
 
-            <div className="mt-6 space-y-4">
+            <div className="mt-7 space-y-5">
               {pipeline.map((item) => {
                 const percentage =
                   leadMetrics.total > 0
-                    ? Math.max(
-                        5,
-                        Math.round(
-                          (item.count /
-                            leadMetrics.total) *
-                            100
-                        )
+                    ? Math.round(
+                        (item.count /
+                          leadMetrics.total) *
+                          100
                       )
-                    : 5;
+                    : 0;
+
+                const width =
+                  item.count > 0
+                    ? Math.max(
+                        percentage,
+                        4
+                      )
+                    : 0;
 
                 return (
-                  <div key={item.status}>
+                  <div
+                    key={item.status}
+                  >
                     <div className="mb-2 flex items-center justify-between gap-4">
                       <div className="flex items-center gap-2">
                         <StatusBadge
-                          status={item.status}
+                          status={
+                            item.status
+                          }
                         />
 
-                        <span className="text-xs font-semibold text-slate-500">
-                          {item.count} lead
-                          {item.count !== 1
-                            ? "s"
-                            : ""}
+                        <span className="text-[11px] font-semibold text-slate-400">
+                          {item.count}{" "}
+                          {item.count === 1
+                            ? "lead"
+                            : "leads"}
                         </span>
                       </div>
 
-                      <span className="text-xs font-bold text-slate-700">
-                        {formatCurrency(
-                          item.value
-                        )}
-                      </span>
+                      <div className="text-right">
+                        <p className="text-xs font-black text-slate-800">
+                          {formatCurrency(
+                            item.value
+                          )}
+                        </p>
+                      </div>
                     </div>
 
                     <div className="h-2 overflow-hidden rounded-full bg-slate-100">
                       <div
-                        className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 transition-all duration-700"
+                        className="h-full rounded-full bg-gradient-to-r from-indigo-500 via-violet-500 to-fuchsia-500 transition-all duration-700"
                         style={{
-                          width: `${percentage}%`,
+                          width: `${width}%`,
                         }}
                       />
                     </div>
@@ -1191,33 +1488,55 @@ export default function Dashboard() {
             <SectionHeader
               icon={Activity}
               title="Lead Sources"
-              description="Where your leads come from"
+              description="Your top acquisition channels"
             />
 
-            <div className="mt-6 space-y-5">
+            <div className="mt-7 space-y-6">
               {sourceStats.map(
                 ([source, count], index) => {
                   const width =
-                    (count / maxSourceCount) *
+                    (count /
+                      maxSourceCount) *
                     100;
+
+                  const percentage =
+                    leadMetrics.total > 0
+                      ? Math.round(
+                          (count /
+                            leadMetrics.total) *
+                            100
+                        )
+                      : 0;
 
                   return (
                     <div key={source}>
                       <div className="mb-2 flex items-center justify-between">
-                        <span className="text-xs font-bold text-slate-600">
-                          {getStatusLabel(
-                            source
-                          )}
-                        </span>
+                        <div className="flex min-w-0 items-center gap-2">
+                          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-[10px] font-black text-slate-600">
+                            {index + 1}
+                          </span>
 
-                        <span className="text-xs font-black text-slate-900">
-                          {count}
-                        </span>
+                          <span className="truncate text-xs font-bold text-slate-700">
+                            {getSourceLabel(
+                              source
+                            )}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-bold text-slate-400">
+                            {percentage}%
+                          </span>
+
+                          <span className="text-xs font-black text-slate-900">
+                            {count}
+                          </span>
+                        </div>
                       </div>
 
                       <div className="h-2 overflow-hidden rounded-full bg-slate-100">
                         <div
-                          className="h-full rounded-full bg-gradient-to-r from-indigo-500 via-violet-500 to-fuchsia-500"
+                          className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 transition-all duration-700"
                           style={{
                             width: `${width}%`,
                             transitionDelay: `${
@@ -1235,10 +1554,38 @@ export default function Dashboard() {
                 <EmptyState
                   icon={Activity}
                   title="No source data"
-                  description="Lead source analytics will appear here."
+                  description="Lead source analytics will appear once leads are created."
                 />
               )}
             </div>
+
+            {/* Source summary */}
+
+            {sourceStats.length > 0 && (
+              <div className="mt-7 rounded-xl border border-indigo-100 bg-indigo-50/60 p-4">
+                <div className="flex items-center gap-2">
+                  <TrendingUp
+                    size={15}
+                    className="text-indigo-600"
+                  />
+
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-indigo-700">
+                    Top source
+                  </span>
+                </div>
+
+                <p className="mt-2 text-sm font-black text-slate-900">
+                  {getSourceLabel(
+                    sourceStats[0][0]
+                  )}
+                </p>
+
+                <p className="mt-0.5 text-[11px] font-medium text-slate-500">
+                  {sourceStats[0][1]} leads
+                  generated
+                </p>
+              </div>
+            )}
           </div>
         </section>
 
@@ -1247,6 +1594,7 @@ export default function Dashboard() {
         ================================================== */}
 
         <section className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+
           {/* RECENT LEADS */}
 
           <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm xl:col-span-2">
@@ -1254,39 +1602,43 @@ export default function Dashboard() {
               <SectionHeader
                 icon={Flame}
                 title="Recent Leads"
-                description="Latest sales activity"
+                description="Latest opportunities entering your CRM"
                 action={
                   <button
                     type="button"
                     onClick={() =>
                       navigate("/leads")
                     }
-                    className="inline-flex items-center gap-1 text-xs font-bold text-indigo-600 hover:text-indigo-700"
+                    className="inline-flex items-center gap-1 text-[11px] font-extrabold text-indigo-600 hover:text-indigo-700"
                   >
                     View all
-                    <ChevronRight size={14} />
+                    <ChevronRight size={13} />
                   </button>
                 }
               />
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[650px]">
+              <table className="w-full min-w-[720px]">
                 <thead>
-                  <tr className="border-y border-slate-100 bg-slate-50/70">
-                    <th className="px-5 py-3 text-left text-[10px] font-black uppercase tracking-wider text-slate-400">
+                  <tr className="border-y border-slate-100 bg-slate-50/80">
+                    <th className="px-5 py-3 text-left text-[9px] font-black uppercase tracking-[0.14em] text-slate-500">
                       Lead
                     </th>
 
-                    <th className="px-5 py-3 text-left text-[10px] font-black uppercase tracking-wider text-slate-400">
+                    <th className="px-5 py-3 text-left text-[9px] font-black uppercase tracking-[0.14em] text-slate-500">
                       Company
                     </th>
 
-                    <th className="px-5 py-3 text-left text-[10px] font-black uppercase tracking-wider text-slate-400">
+                    <th className="px-5 py-3 text-left text-[9px] font-black uppercase tracking-[0.14em] text-slate-500">
+                      Source
+                    </th>
+
+                    <th className="px-5 py-3 text-left text-[9px] font-black uppercase tracking-[0.14em] text-slate-500">
                       Status
                     </th>
 
-                    <th className="px-5 py-3 text-right text-[10px] font-black uppercase tracking-wider text-slate-400">
+                    <th className="px-5 py-3 text-right text-[9px] font-black uppercase tracking-[0.14em] text-slate-500">
                       Value
                     </th>
                   </tr>
@@ -1295,24 +1647,29 @@ export default function Dashboard() {
                 <tbody>
                   {recentLeads.map((lead) => (
                     <tr
-                      key={lead._id || lead.id}
-                      className="group border-b border-slate-100 transition hover:bg-slate-50"
+                      key={
+                        lead._id ||
+                        lead.id
+                      }
+                      className="group border-b border-slate-100 transition hover:bg-slate-50/80"
                     >
+                      {/* Lead */}
+
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-[11px] font-black text-white shadow-sm">
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-[10px] font-black text-white shadow-sm">
                             {getInitials(
                               lead.name
                             )}
                           </div>
 
                           <div className="min-w-0">
-                            <p className="truncate text-sm font-bold text-slate-800">
+                            <p className="max-w-[170px] truncate text-xs font-black text-slate-800">
                               {lead.name ||
                                 "Unnamed Lead"}
                             </p>
 
-                            <p className="mt-0.5 truncate text-[11px] text-slate-400">
+                            <p className="mt-0.5 max-w-[170px] truncate text-[10px] font-medium text-slate-400">
                               {lead.email ||
                                 lead.phone ||
                                 "No contact"}
@@ -1321,18 +1678,37 @@ export default function Dashboard() {
                         </div>
                       </td>
 
+                      {/* Company */}
+
                       <td className="px-5 py-4">
-                        <p className="max-w-[180px] truncate text-xs font-semibold text-slate-600">
+                        <p className="max-w-[150px] truncate text-xs font-semibold text-slate-600">
                           {lead.companyName ||
                             "—"}
                         </p>
                       </td>
 
+                      {/* Source */}
+
+                      <td className="px-5 py-4">
+                        <span className="rounded-lg bg-slate-100 px-2 py-1 text-[10px] font-bold text-slate-600">
+                          {getSourceLabel(
+                            lead.source ||
+                              "OTHER"
+                          )}
+                        </span>
+                      </td>
+
+                      {/* Status */}
+
                       <td className="px-5 py-4">
                         <StatusBadge
-                          status={lead.status}
+                          status={
+                            lead.status
+                          }
                         />
                       </td>
+
+                      {/* Value */}
 
                       <td className="px-5 py-4 text-right">
                         <p className="text-xs font-black text-slate-800">
@@ -1341,7 +1717,7 @@ export default function Dashboard() {
                           )}
                         </p>
 
-                        <p className="mt-0.5 text-[10px] text-slate-400">
+                        <p className="mt-0.5 text-[9px] font-medium text-slate-400">
                           {formatDate(
                             lead.createdAt
                           )}
@@ -1356,7 +1732,7 @@ export default function Dashboard() {
                 <EmptyState
                   icon={Target}
                   title="No recent leads"
-                  description="Your latest leads will appear here."
+                  description="Your latest sales opportunities will appear here."
                 />
               )}
             </div>
@@ -1367,10 +1743,10 @@ export default function Dashboard() {
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <SectionHeader
               icon={CalendarClock}
-              title="Upcoming Follow-ups"
+              title="Follow-ups"
               description="Stay connected with prospects"
               action={
-                <span className="rounded-full bg-indigo-50 px-2 py-1 text-[10px] font-black text-indigo-600">
+                <span className="rounded-full bg-indigo-50 px-2.5 py-1 text-[10px] font-black text-indigo-600">
                   {followUps.length}
                 </span>
               }
@@ -1392,12 +1768,13 @@ export default function Dashboard() {
                   <button
                     type="button"
                     key={
-                      lead._id || lead.id
+                      lead._id ||
+                      lead.id
                     }
                     onClick={() =>
                       navigate("/leads")
                     }
-                    className="group w-full rounded-xl border border-slate-100 bg-slate-50/70 p-3 text-left transition hover:border-indigo-100 hover:bg-indigo-50/40"
+                    className="group w-full rounded-xl border border-slate-100 bg-slate-50/60 p-3 text-left transition hover:border-indigo-100 hover:bg-indigo-50/40"
                   >
                     <div className="flex items-start gap-3">
                       <div
@@ -1408,30 +1785,31 @@ export default function Dashboard() {
                         }`}
                       >
                         <CalendarClock
-                          size={17}
+                          size={16}
                         />
                       </div>
 
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-xs font-black text-slate-800">
-                          {lead.name}
+                          {lead.name ||
+                            "Unnamed Lead"}
                         </p>
 
-                        <p className="mt-1 truncate text-[11px] text-slate-400">
+                        <p className="mt-1 truncate text-[10px] font-medium text-slate-500">
                           {lead.companyName ||
                             lead.email ||
                             "Lead"}
                         </p>
 
                         <div className="mt-2 flex items-center justify-between gap-2">
-                          <span className="text-[10px] font-semibold text-slate-400">
+                          <span className="text-[9px] font-semibold text-slate-400">
                             {formatDate(
                               lead.nextFollowUpAt
                             )}
                           </span>
 
                           <span
-                            className={`text-[10px] font-black ${
+                            className={`text-[9px] font-black ${
                               overdue
                                 ? "text-rose-600"
                                 : "text-indigo-600"
@@ -1466,96 +1844,111 @@ export default function Dashboard() {
             <SectionHeader
               icon={Users}
               title="Recent Contacts"
-              description="Your latest customer relationships"
+              description="Latest people added to your customer database"
               action={
                 <button
                   type="button"
                   onClick={() =>
                     navigate("/contacts")
                   }
-                  className="inline-flex items-center gap-1 text-xs font-bold text-indigo-600 hover:text-indigo-700"
+                  className="inline-flex items-center gap-1 text-[11px] font-extrabold text-indigo-600 hover:text-indigo-700"
                 >
                   View all
-                  <ChevronRight size={14} />
+                  <ChevronRight size={13} />
                 </button>
               }
             />
           </div>
 
-          <div className="grid grid-cols-1 gap-3 border-t border-slate-100 p-4 sm:grid-cols-2 xl:grid-cols-5">
-            {recentContacts.map((contact) => (
-              <button
-                type="button"
-                key={
-                  contact._id || contact.id
-                }
-                onClick={() =>
-                  navigate("/contacts")
-                }
-                className="group rounded-2xl border border-slate-100 bg-slate-50/60 p-4 text-left transition hover:-translate-y-0.5 hover:border-indigo-100 hover:bg-white hover:shadow-md"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-xs font-black text-white shadow-sm">
-                    {getInitials(
-                      contact.fullName ||
-                        `${contact.firstName || ""} ${
-                          contact.lastName || ""
-                        }`
-                    )}
-                  </div>
+          <div className="grid grid-cols-1 gap-3 border-t border-slate-100 p-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+            {recentContacts.map(
+              (contact) => {
+                const contactName =
+                  contact.fullName ||
+                  `${contact.firstName || ""} ${
+                    contact.lastName || ""
+                  }`.trim() ||
+                  "Unnamed Contact";
 
-                  <StatusBadge
-                    status={contact.status}
-                  />
-                </div>
+                return (
+                  <button
+                    type="button"
+                    key={
+                      contact._id ||
+                      contact.id
+                    }
+                    onClick={() =>
+                      navigate(
+                        "/contacts"
+                      )
+                    }
+                    className="group rounded-2xl border border-slate-100 bg-slate-50/50 p-4 text-left transition-all duration-300 hover:-translate-y-1 hover:border-indigo-100 hover:bg-white hover:shadow-lg"
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-[10px] font-black text-white shadow-sm">
+                        {getInitials(
+                          contactName
+                        )}
+                      </div>
 
-                <h4 className="mt-4 truncate text-sm font-black text-slate-800">
-                  {contact.fullName ||
-                    `${contact.firstName || ""} ${
-                      contact.lastName || ""
-                    }`.trim() ||
-                    "Unnamed Contact"}
-                </h4>
-
-                <p className="mt-1 truncate text-[11px] font-medium text-slate-400">
-                  {contact.designation ||
-                    "Business Contact"}
-                </p>
-
-                <div className="mt-4 space-y-2">
-                  {contact.email && (
-                    <div className="flex min-w-0 items-center gap-2 text-[10px] text-slate-500">
-                      <Mail
-                        size={12}
-                        className="shrink-0"
+                      <StatusBadge
+                        status={
+                          contact.status
+                        }
                       />
-
-                      <span className="truncate">
-                        {contact.email}
-                      </span>
                     </div>
-                  )}
 
-                  {contact.phone && (
-                    <div className="flex min-w-0 items-center gap-2 text-[10px] text-slate-500">
-                      <Phone
-                        size={12}
-                        className="shrink-0"
-                      />
+                    <h4 className="mt-4 truncate text-xs font-black text-slate-800">
+                      {contactName}
+                    </h4>
 
-                      <span>
-                        {contact.phone}
-                      </span>
+                    <p className="mt-1 truncate text-[10px] font-semibold text-slate-400">
+                      {contact.designation ||
+                        "Business Contact"}
+                    </p>
+
+                    <div className="mt-4 space-y-2">
+                      {contact.email && (
+                        <div className="flex min-w-0 items-center gap-2 text-[9px] font-medium text-slate-500">
+                          <Mail
+                            size={11}
+                            className="shrink-0"
+                          />
+
+                          <span className="truncate">
+                            {
+                              contact.email
+                            }
+                          </span>
+                        </div>
+                      )}
+
+                      {contact.phone && (
+                        <div className="flex min-w-0 items-center gap-2 text-[9px] font-medium text-slate-500">
+                          <Phone
+                            size={11}
+                            className="shrink-0"
+                          />
+
+                          <span>
+                            {
+                              contact.phone
+                            }
+                          </span>
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-              </button>
-            ))}
+                  </button>
+                );
+              }
+            )}
 
             {!recentContacts.length && (
-              <div className="sm:col-span-2 xl:col-span-5">
+              <div className="sm:col-span-2 lg:col-span-3 xl:col-span-5">
                 <EmptyState
-                  icon={ContactRound}
+                  icon={
+                    ContactRound
+                  }
                   title="No contacts yet"
                   description="Your customer contacts will appear here."
                 />
@@ -1565,20 +1958,22 @@ export default function Dashboard() {
         </section>
 
         {/* ==================================================
-            FOOTER SUMMARY
+            PERFORMANCE SUMMARY
         ================================================== */}
 
         <section className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          {/* Open */}
+
           <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
                 <BriefcaseBusiness
                   size={18}
                 />
               </div>
 
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+              <div className="min-w-0">
+                <p className="truncate text-[9px] font-extrabold uppercase tracking-wider text-slate-400">
                   Open Leads
                 </p>
 
@@ -1589,14 +1984,16 @@ export default function Dashboard() {
             </div>
           </div>
 
+          {/* Qualified */}
+
           <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-50 text-violet-600">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-50 text-violet-600">
                 <Target size={18} />
               </div>
 
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+              <div className="min-w-0">
+                <p className="truncate text-[9px] font-extrabold uppercase tracking-wider text-slate-400">
                   Qualified
                 </p>
 
@@ -1607,17 +2004,19 @@ export default function Dashboard() {
             </div>
           </div>
 
+          {/* Won */}
+
           <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
                 <CheckCircle2
                   size={18}
                 />
               </div>
 
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                  Won
+              <div className="min-w-0">
+                <p className="truncate text-[9px] font-extrabold uppercase tracking-wider text-slate-400">
+                  Won Deals
                 </p>
 
                 <p className="mt-0.5 text-xl font-black text-slate-900">
@@ -1627,15 +2026,17 @@ export default function Dashboard() {
             </div>
           </div>
 
+          {/* Lost */}
+
           <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-50 text-rose-600">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-50 text-rose-600">
                 <XCircle size={18} />
               </div>
 
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                  Lost
+              <div className="min-w-0">
+                <p className="truncate text-[9px] font-extrabold uppercase tracking-wider text-slate-400">
+                  Lost Deals
                 </p>
 
                 <p className="mt-0.5 text-xl font-black text-slate-900">
@@ -1647,12 +2048,575 @@ export default function Dashboard() {
         </section>
 
         {/* ==================================================
-            COPYRIGHT
+    HELPDESK CHAT
+================================================== */}
+
+<div className="fixed bottom-5 right-5 z-[60] sm:bottom-6 sm:right-6">
+
+  {/* ==================================================
+      CHAT WINDOW
+  ================================================== */}
+
+  {chatOpen && (
+    <>
+      {/* Mobile backdrop */}
+      <button
+        type="button"
+        aria-label="Close helpdesk"
+        onClick={closeHelpdesk}
+        className="fixed inset-0 -z-10 bg-slate-950/20 backdrop-blur-[2px] sm:hidden"
+      />
+
+      <div className="mb-4 w-[calc(100vw-24px)] max-w-[410px] overflow-hidden rounded-[28px] border border-slate-200/80 bg-white shadow-[0_30px_90px_rgba(15,23,42,0.24)] ring-1 ring-slate-950/5">
+
+        {/* ==================================================
+            CHAT HEADER
         ================================================== */}
 
-        <footer className="pb-4 pt-2 text-center text-[11px] font-medium text-slate-400">
-          CRM Dashboard • Sales & Customer
-          Relationship Management
+        <div className="relative overflow-hidden bg-slate-950">
+
+          {/* Background glow */}
+          <div className="absolute -right-16 -top-16 h-44 w-44 rounded-full bg-indigo-500/20 blur-3xl" />
+
+          <div className="absolute -bottom-20 -left-10 h-36 w-36 rounded-full bg-violet-500/10 blur-3xl" />
+
+          {/* Decorative circles */}
+          <div className="absolute right-5 top-5 h-16 w-16 rounded-full border border-white/5" />
+          <div className="absolute right-8 top-8 h-10 w-10 rounded-full border border-white/5" />
+
+          <div className="relative px-5 pb-5 pt-5 sm:px-6">
+
+            <div className="flex items-start justify-between gap-4">
+
+              {/* Brand */}
+              <div className="flex min-w-0 items-center gap-3">
+
+                <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-lg shadow-indigo-950/30">
+
+                  <MessageCircle
+                    size={22}
+                    strokeWidth={2.2}
+                  />
+
+                  <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full border-2 border-slate-950 bg-emerald-400">
+                    <span className="h-1.5 w-1.5 rounded-full bg-white" />
+                  </span>
+
+                </div>
+
+                <div className="min-w-0">
+
+                  <div className="flex items-center gap-2">
+
+                    <p className="text-sm font-black tracking-tight text-white">
+                      Ready Tech Helpdesk
+                    </p>
+
+                  </div>
+
+                  <div className="mt-1 flex items-center gap-1.5">
+
+                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
+
+                    <span className="text-[10px] font-semibold text-slate-400">
+                      Online • Enquiries welcome
+                    </span>
+
+                  </div>
+
+                </div>
+
+              </div>
+
+              {/* Close */}
+              <button
+                type="button"
+                onClick={closeHelpdesk}
+                disabled={chatSubmitting}
+                aria-label="Close helpdesk"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-slate-400 transition hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <X size={17} />
+              </button>
+
+            </div>
+
+            {/* Header message */}
+
+            <div className="mt-5 rounded-2xl border border-white/10 bg-white/[0.06] px-3.5 py-3 backdrop-blur">
+
+              <div className="flex items-start gap-2.5">
+
+                <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-indigo-500/15 text-indigo-300">
+                  <Zap
+                    size={13}
+                    strokeWidth={2.5}
+                  />
+                </div>
+
+                <div>
+                  <p className="text-[11px] font-bold text-white">
+                    Need help with Ready Tech?
+                  </p>
+
+                  <p className="mt-0.5 text-[10px] leading-4 text-slate-400">
+                    Send your requirement and our team will get back to you.
+                  </p>
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+        {/* ==================================================
+            FORM BODY
+        ================================================== */}
+
+        <form
+          onSubmit={handleChatSubmit}
+          className="max-h-[calc(100vh-190px)] overflow-y-auto bg-white p-5 sm:p-6"
+        >
+
+          {/* ==================================================
+              SUCCESS STATE
+          ================================================== */}
+
+          {chatSuccess && (
+            <div className="mb-5 overflow-hidden rounded-2xl border border-emerald-200 bg-emerald-50">
+
+              <div className="flex items-start gap-3 p-4">
+
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600">
+                  <CheckCircle2 size={18} />
+                </div>
+
+                <div className="min-w-0">
+
+                  <p className="text-xs font-black text-emerald-800">
+                    Enquiry submitted successfully
+                  </p>
+
+                  <p className="mt-1 text-[10px] leading-4 text-emerald-700">
+                    {chatSuccess}
+                  </p>
+
+                </div>
+
+              </div>
+
+              <div className="border-t border-emerald-200/70 px-4 py-2.5">
+                <p className="text-[9px] font-semibold text-emerald-600">
+                  Our team has received your enquiry.
+                </p>
+              </div>
+
+            </div>
+          )}
+
+          {/* ==================================================
+              ERROR STATE
+          ================================================== */}
+
+          {chatError && (
+            <div className="mb-5 flex items-start gap-3 rounded-2xl border border-rose-200 bg-rose-50 p-4">
+
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-rose-100 text-rose-600">
+                <XCircle size={16} />
+              </div>
+
+              <div className="min-w-0">
+
+                <p className="text-xs font-black text-rose-800">
+                  Unable to submit enquiry
+                </p>
+
+                <p className="mt-1 text-[10px] leading-4 text-rose-700">
+                  {chatError}
+                </p>
+
+              </div>
+
+            </div>
+          )}
+
+          {/* ==================================================
+              FORM INTRO
+          ================================================== */}
+
+          {!chatSuccess && (
+            <div className="mb-5">
+
+              <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-indigo-600">
+                Contact our team
+              </p>
+
+              <h3 className="mt-1 text-base font-black tracking-tight text-slate-950">
+                Tell us what you need
+              </h3>
+
+              <p className="mt-1 text-[10px] leading-5 text-slate-500">
+                Fill in your details and send us your requirement.
+              </p>
+
+            </div>
+          )}
+
+          {/* ==================================================
+              NAME + EMAIL
+          ================================================== */}
+
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+
+            {/* Name */}
+
+            <div>
+
+              <label
+                htmlFor="helpdesk-name"
+                className="mb-1.5 block text-[10px] font-extrabold uppercase tracking-wider text-slate-500"
+              >
+                Name
+                <span className="ml-1 text-rose-500">*</span>
+              </label>
+
+              <div className="relative">
+
+                <UserRound
+                  size={14}
+                  className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                />
+
+                <input
+                  id="helpdesk-name"
+                  name="name"
+                  type="text"
+                  value={chatForm.name}
+                  onChange={handleChatChange}
+                  placeholder="Full name"
+                  maxLength={200}
+                  autoComplete="name"
+                  disabled={chatSubmitting}
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-9 pr-3 text-xs font-medium text-slate-900 outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 disabled:cursor-not-allowed disabled:opacity-60"
+                />
+
+              </div>
+
+            </div>
+
+            {/* Email */}
+
+            <div>
+
+              <label
+                htmlFor="helpdesk-email"
+                className="mb-1.5 block text-[10px] font-extrabold uppercase tracking-wider text-slate-500"
+              >
+                Email
+                <span className="ml-1 text-rose-500">*</span>
+              </label>
+
+              <div className="relative">
+
+                <Mail
+                  size={14}
+                  className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                />
+
+                <input
+                  id="helpdesk-email"
+                  name="email"
+                  type="email"
+                  value={chatForm.email}
+                  onChange={handleChatChange}
+                  placeholder="you@company.com"
+                  maxLength={200}
+                  autoComplete="email"
+                  disabled={chatSubmitting}
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-9 pr-3 text-xs font-medium text-slate-900 outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 disabled:cursor-not-allowed disabled:opacity-60"
+                />
+
+              </div>
+
+            </div>
+
+          </div>
+
+          {/* ==================================================
+              PHONE + COMPANY
+          ================================================== */}
+
+          <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+
+            {/* Phone */}
+
+            <div>
+
+              <label
+                htmlFor="helpdesk-phone"
+                className="mb-1.5 block text-[10px] font-extrabold uppercase tracking-wider text-slate-500"
+              >
+                Phone
+                <span className="ml-1 font-medium normal-case tracking-normal text-slate-400">
+                  Optional
+                </span>
+              </label>
+
+              <div className="relative">
+
+                <Phone
+                  size={14}
+                  className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                />
+
+                <input
+                  id="helpdesk-phone"
+                  name="phone"
+                  type="tel"
+                  value={chatForm.phone}
+                  onChange={handleChatChange}
+                  placeholder="9876543210"
+                  maxLength={30}
+                  autoComplete="tel"
+                  disabled={chatSubmitting}
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-9 pr-3 text-xs font-medium text-slate-900 outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 disabled:cursor-not-allowed disabled:opacity-60"
+                />
+
+              </div>
+
+            </div>
+
+            {/* Company */}
+
+            <div>
+
+              <label
+                htmlFor="helpdesk-company"
+                className="mb-1.5 block text-[10px] font-extrabold uppercase tracking-wider text-slate-500"
+              >
+                Company
+                <span className="ml-1 font-medium normal-case tracking-normal text-slate-400">
+                  Optional
+                </span>
+              </label>
+
+              <div className="relative">
+
+                <BriefcaseBusiness
+                  size={14}
+                  className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                />
+
+                <input
+                  id="helpdesk-company"
+                  name="companyName"
+                  type="text"
+                  value={chatForm.companyName}
+                  onChange={handleChatChange}
+                  placeholder="Company name"
+                  maxLength={200}
+                  autoComplete="organization"
+                  disabled={chatSubmitting}
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-9 pr-3 text-xs font-medium text-slate-900 outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 disabled:cursor-not-allowed disabled:opacity-60"
+                />
+
+              </div>
+
+            </div>
+
+          </div>
+
+          {/* ==================================================
+              MESSAGE
+          ================================================== */}
+
+          <div className="mt-3">
+
+            <div className="mb-1.5 flex items-center justify-between">
+
+              <label
+                htmlFor="helpdesk-message"
+                className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500"
+              >
+                Message
+                <span className="ml-1 text-rose-500">*</span>
+              </label>
+
+              <span className="text-[9px] font-semibold text-slate-400">
+                {chatForm.message.length}/5000
+              </span>
+
+            </div>
+
+            <textarea
+              id="helpdesk-message"
+              name="message"
+              value={chatForm.message}
+              onChange={handleChatChange}
+              placeholder="Tell us about your requirement, product enquiry or support request..."
+              rows={5}
+              maxLength={5000}
+              disabled={chatSubmitting}
+              className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-3 text-xs font-medium leading-5 text-slate-900 outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 disabled:cursor-not-allowed disabled:opacity-60"
+            />
+
+          </div>
+
+          {/* ==================================================
+              SUBMIT
+          ================================================== */}
+
+          <button
+            type="submit"
+            disabled={chatSubmitting}
+            className="group mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950 px-4 py-3.5 text-xs font-extrabold text-white shadow-lg shadow-slate-950/10 transition-all duration-300 hover:-translate-y-0.5 hover:from-indigo-600 hover:via-indigo-600 hover:to-violet-600 hover:shadow-xl hover:shadow-indigo-500/20 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
+          >
+
+            {chatSubmitting ? (
+              <>
+                <Loader2
+                  size={16}
+                  className="animate-spin"
+                />
+
+                <span>
+                  Sending enquiry...
+                </span>
+              </>
+            ) : (
+              <>
+                <Send
+                  size={15}
+                  strokeWidth={2.4}
+                  className="transition-transform duration-300 group-hover:translate-x-1"
+                />
+
+                <span>
+                  Send Enquiry
+                </span>
+
+                <ChevronRight
+                  size={14}
+                  className="transition-transform duration-300 group-hover:translate-x-0.5"
+                />
+              </>
+            )}
+
+          </button>
+
+          {/* ==================================================
+              TRUST FOOTER
+          ================================================== */}
+
+          <div className="mt-4 flex items-center justify-center gap-2">
+
+            <div className="flex h-5 w-5 items-center justify-center rounded-md bg-emerald-50 text-emerald-600">
+              <CheckCircle2 size={11} />
+            </div>
+
+            <p className="text-center text-[9px] font-semibold leading-4 text-slate-400">
+              Your enquiry is securely submitted to the Ready Tech team.
+            </p>
+
+          </div>
+
+        </form>
+
+      </div>
+    </>
+  )}
+
+  {/* ==================================================
+      FLOATING LAUNCHER
+  ================================================== */}
+
+  {!chatOpen && (
+    <div className="flex items-end gap-3">
+
+      {/* Desktop label */}
+
+      <button
+        type="button"
+        onClick={openHelpdesk}
+        className="group hidden items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-left shadow-lg shadow-slate-900/10 transition-all duration-300 hover:-translate-y-1 hover:border-indigo-200 hover:shadow-xl sm:flex"
+      >
+
+        <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 transition group-hover:bg-indigo-600 group-hover:text-white">
+          <MessageCircle
+            size={16}
+            strokeWidth={2.3}
+          />
+        </div>
+
+        <div>
+
+          <p className="text-[10px] font-black text-slate-900">
+            Need help?
+          </p>
+
+          <p className="mt-0.5 text-[9px] font-semibold text-slate-400">
+            Chat with our team
+          </p>
+
+        </div>
+
+        <ChevronRight
+          size={14}
+          className="ml-1 text-slate-400 transition group-hover:translate-x-0.5 group-hover:text-indigo-600"
+        />
+
+      </button>
+
+      {/* Main floating button */}
+
+      <button
+        type="button"
+        onClick={openHelpdesk}
+        aria-label="Open helpdesk"
+        className="group relative flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 text-white shadow-[0_18px_45px_rgba(15,23,42,0.28)] transition-all duration-300 hover:-translate-y-1 hover:scale-105 hover:shadow-[0_22px_55px_rgba(79,70,229,0.32)]"
+      >
+
+        {/* Glow */}
+
+        <span className="absolute inset-0 rounded-2xl bg-indigo-500 opacity-0 blur-xl transition duration-300 group-hover:opacity-30" />
+
+        {/* Icon */}
+
+        <MessageCircle
+          size={23}
+          strokeWidth={2.2}
+          className="relative transition-transform duration-300 group-hover:scale-110"
+        />
+
+        {/* Online badge */}
+
+        <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full border-[3px] border-slate-50 bg-emerald-500 shadow-sm">
+          <span className="h-1.5 w-1.5 rounded-full bg-white" />
+        </span>
+
+      </button>
+
+    </div>
+  )}
+
+</div>
+
+        {/* ==================================================
+            FOOTER
+        ================================================== */}
+
+        <footer className="flex flex-col items-center justify-between gap-2 border-t border-slate-200 py-5 text-[10px] font-semibold text-slate-400 sm:flex-row">
+          <span>
+            Ready Tech CRM
+          </span>
+
+          <span>
+            Sales & Customer Relationship
+            Management
+          </span>
         </footer>
       </main>
     </div>

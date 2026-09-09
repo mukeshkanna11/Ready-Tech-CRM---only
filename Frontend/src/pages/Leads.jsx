@@ -300,7 +300,7 @@ function StatCard({ icon: Icon, label, value, subtitle, trend }) {
           </h3>
 
           {subtitle && (
-            <p className="mt-1 text-xs text-slate-400">{subtitle}</p>
+            <p className="mt-1 text-xs text-slate-500">{subtitle}</p>
           )}
         </div>
 
@@ -323,7 +323,7 @@ function Modal({ title, subtitle, onClose, children, wide = false }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4 backdrop-blur-sm">
       <div
-        className={`max-h-[92vh] w-full overflow-hidden rounded-3xl border border-white/30 bg-white shadow-2xl ${
+        className={`max-h-[92vh] w-full overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[var(--shadow-overlay)] ${
           wide ? "max-w-6xl" : "max-w-2xl"
         }`}
       >
@@ -337,7 +337,7 @@ function Modal({ title, subtitle, onClose, children, wide = false }) {
 
           <button
             onClick={onClose}
-            className="rounded-xl p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+            className="rounded-xl p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
           >
             <X size={20} />
           </button>
@@ -363,7 +363,7 @@ function Field({ label, children, required }) {
 }
 
 const inputClass =
-  "w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:ring-4 focus:ring-slate-100";
+  "w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-500 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15 hover:border-slate-400 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500";
 
 function LeadForm({ form, setForm, onSubmit, saving, editing }) {
   const update = (key, value) => {
@@ -768,7 +768,7 @@ function LeadDetails({ lead, onClose, onEdit, onConvert, onDelete }) {
 
         <div className="space-y-3">
           <div className="rounded-2xl bg-slate-950 p-5 text-white">
-            <p className="text-xs font-medium text-slate-400">Lead Value</p>
+            <p className="text-xs font-medium text-slate-500">Lead Value</p>
             <p className="mt-2 text-3xl font-bold">
               {formatCurrency(lead.value, lead.currency)}
             </p>
@@ -838,7 +838,7 @@ function InfoCard({ icon: Icon, label, value }) {
         </div>
 
         <div className="min-w-0">
-          <p className="text-xs font-medium text-slate-400">{label}</p>
+          <p className="text-xs font-medium text-slate-500">{label}</p>
           <p className="truncate text-sm font-semibold text-slate-800">
             {value}
           </p>
@@ -851,7 +851,7 @@ function InfoCard({ icon: Icon, label, value }) {
 function Detail({ label, value }) {
   return (
     <div>
-      <p className="text-xs font-medium text-slate-400">{label}</p>
+      <p className="text-xs font-medium text-slate-500">{label}</p>
       <p className="mt-1 font-semibold text-slate-700">{value || "—"}</p>
     </div>
   );
@@ -1026,7 +1026,7 @@ export default function Leads() {
 
       if (editingLead?._id) {
         await apiRequest(`${LEADS_ENDPOINT}/${editingLead._id}`, {
-          method: "PATCH",
+          method: "PUT",
           body: JSON.stringify(payload),
         });
       } else {
@@ -1164,7 +1164,7 @@ export default function Leads() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f6f8fb] p-4 md:p-6 lg:p-8">
+    <div className="min-h-screen bg-surface p-4 text-slate-900 sm:p-6 lg:p-8">
       <div className="mx-auto max-w-[1600px] space-y-6">
         {/* HEADER */}
         <section className="relative overflow-hidden rounded-3xl bg-slate-950 p-6 text-white shadow-2xl md:p-8">
@@ -1182,7 +1182,7 @@ export default function Leads() {
                 Leads
               </h1>
 
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
                 Manage prospects, qualification, follow-ups and
                 conversion from one premium workspace.
               </p>
@@ -1281,7 +1281,7 @@ export default function Leads() {
             <div className="relative flex-1">
               <Search
                 size={18}
-                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500"
               />
 
               <input
@@ -1291,7 +1291,7 @@ export default function Leads() {
                   setPage(1);
                 }}
                 placeholder="Search leads by name, email, phone or company..."
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-4 text-sm outline-none transition focus:border-slate-300 focus:bg-white focus:ring-4 focus:ring-slate-100"
+                className="w-full rounded-xl border border-slate-300 bg-slate-50 py-3 pl-10 pr-4 text-sm outline-none transition focus:border-brand-500 focus:bg-white focus:ring-4 focus:ring-brand-500/15 text-slate-900 placeholder:text-slate-500 hover:border-slate-400 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500"
               />
             </div>
 
@@ -1302,7 +1302,7 @@ export default function Leads() {
                   setStatusFilter(e.target.value);
                   setPage(1);
                 }}
-                className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium outline-none focus:ring-4 focus:ring-slate-100"
+                className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium outline-none focus:ring-4 focus:ring-brand-500/15 text-slate-900 placeholder:text-slate-500 transition hover:border-slate-400 focus:border-brand-500 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500"
               >
                 <option value="ALL">All Status</option>
                 {STATUS_OPTIONS.map((status) => (
@@ -1318,7 +1318,7 @@ export default function Leads() {
                   setSourceFilter(e.target.value);
                   setPage(1);
                 }}
-                className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium outline-none focus:ring-4 focus:ring-slate-100"
+                className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium outline-none focus:ring-4 focus:ring-brand-500/15 text-slate-900 placeholder:text-slate-500 transition hover:border-slate-400 focus:border-brand-500 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500"
               >
                 <option value="ALL">All Sources</option>
                 {SOURCE_OPTIONS.map((source) => (
@@ -1349,7 +1349,7 @@ export default function Leads() {
           <div className="flex flex-col justify-between gap-3 border-b border-slate-200 px-5 py-4 sm:flex-row sm:items-center">
             <div>
               <h2 className="font-bold text-slate-900">Lead Pipeline</h2>
-              <p className="mt-1 text-xs text-slate-400">
+              <p className="mt-1 text-xs text-slate-500">
                 Showing {displayedLeads.length} of {pagination.total || 0}{" "}
                 leads
               </p>
@@ -1362,7 +1362,7 @@ export default function Leads() {
                   setLimit(Number(e.target.value));
                   setPage(1);
                 }}
-                className="rounded-lg border border-slate-200 px-2 py-2 text-xs font-medium outline-none"
+                className="rounded-lg border border-slate-300 px-2 py-2 text-xs font-medium outline-none bg-white text-slate-900 placeholder:text-slate-500 transition hover:border-slate-400 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500"
               >
                 <option value={10}>10 / page</option>
                 <option value={20}>20 / page</option>
@@ -1377,7 +1377,7 @@ export default function Leads() {
               <div className="text-center">
                 <RefreshCw
                   size={30}
-                  className="mx-auto animate-spin text-slate-400"
+                  className="mx-auto animate-spin text-slate-500"
                 />
                 <p className="mt-3 text-sm text-slate-500">
                   Loading leads...
@@ -1387,7 +1387,7 @@ export default function Leads() {
           ) : displayedLeads.length === 0 ? (
             <div className="flex min-h-[400px] flex-col items-center justify-center px-6 text-center">
               <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100">
-                <Users size={28} className="text-slate-400" />
+                <Users size={28} className="text-slate-500" />
               </div>
 
               <h3 className="mt-4 text-lg font-bold text-slate-900">
@@ -1410,7 +1410,7 @@ export default function Leads() {
             <>
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[1050px] text-left">
-                  <thead className="bg-slate-50 text-xs uppercase tracking-wider text-slate-400">
+                  <thead className="bg-slate-50 text-xs uppercase tracking-wider text-slate-500">
                     <tr>
                       <th className="px-5 py-4 font-bold">Lead</th>
                       <th className="px-5 py-4 font-bold">Company</th>
@@ -1469,7 +1469,7 @@ export default function Leads() {
                               <p className="truncate font-bold text-slate-900">
                                 {lead.name}
                               </p>
-                              <p className="truncate text-xs text-slate-400">
+                              <p className="truncate text-xs text-slate-500">
                                 {lead.designation || "No designation"}
                               </p>
                             </div>
@@ -1481,7 +1481,7 @@ export default function Leads() {
                             <p className="truncate text-sm font-semibold text-slate-700">
                               {lead.companyName || "—"}
                             </p>
-                            <p className="mt-1 text-xs text-slate-400">
+                            <p className="mt-1 text-xs text-slate-500">
                               {lead.source || "OTHER"}
                             </p>
                           </div>
@@ -1525,7 +1525,7 @@ export default function Leads() {
                             <p className="font-semibold text-slate-700">
                               {formatDate(lead.nextFollowUpAt)}
                             </p>
-                            <p className="mt-1 text-slate-400">
+                            <p className="mt-1 text-slate-500">
                               {formatDate(lead.expectedCloseDate)}
                             </p>
                           </div>
@@ -1536,7 +1536,7 @@ export default function Leads() {
                             <button
                               onClick={() => setSelectedLead(lead)}
                               title="View"
-                              className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+                              className="rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
                             >
                               <Eye size={16} />
                             </button>
@@ -1544,7 +1544,7 @@ export default function Leads() {
                             <button
                               onClick={() => openEdit(lead)}
                               title="Edit"
-                              className="rounded-lg p-2 text-slate-400 transition hover:bg-blue-50 hover:text-blue-600"
+                              className="rounded-lg p-2 text-slate-500 transition hover:bg-blue-50 hover:text-blue-600"
                             >
                               <Edit3 size={16} />
                             </button>
@@ -1552,14 +1552,14 @@ export default function Leads() {
                             <button
                               onClick={() => handleDelete(lead)}
                               title="Delete"
-                              className="rounded-lg p-2 text-slate-400 transition hover:bg-rose-50 hover:text-rose-600"
+                              className="rounded-lg p-2 text-slate-500 transition hover:bg-rose-50 hover:text-rose-600"
                             >
                               <Trash2 size={16} />
                             </button>
 
                             <button
                               title="More"
-                              className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100"
+                              className="rounded-lg p-2 text-slate-500 transition hover:bg-slate-100"
                             >
                               <MoreHorizontal size={16} />
                             </button>

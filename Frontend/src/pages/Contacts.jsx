@@ -355,7 +355,7 @@ function StatCard({
           </h3>
 
           {subtitle && (
-            <p className="mt-1 text-xs text-slate-400">
+            <p className="mt-1 text-xs text-slate-500">
               {subtitle}
             </p>
           )}
@@ -385,7 +385,7 @@ function Modal({
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/60 p-3 backdrop-blur-md sm:p-5">
       <div
-        className={`max-h-[94vh] w-full overflow-hidden rounded-[28px] border border-white/30 bg-white shadow-2xl ${
+        className={`max-h-[94vh] w-full overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[var(--shadow-overlay)] ${
           wide ? "max-w-6xl" : "max-w-2xl"
         }`}
       >
@@ -405,7 +405,7 @@ function Modal({
           <button
             type="button"
             onClick={onClose}
-            className="shrink-0 rounded-xl p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+            className="shrink-0 rounded-xl p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
           >
             <X size={20} />
           </button>
@@ -444,7 +444,7 @@ function Field({
       {children}
 
       {hint && (
-        <span className="mt-1.5 block text-[11px] text-slate-400">
+        <span className="mt-1.5 block text-[11px] text-slate-500">
           {hint}
         </span>
       )}
@@ -453,10 +453,10 @@ function Field({
 }
 
 const inputClass =
-  "w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-slate-400 focus:ring-4 focus:ring-slate-100";
+  "w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-500 hover:border-slate-400 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500";
 
 const textareaClass =
-  "w-full resize-none rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-slate-400 focus:ring-4 focus:ring-slate-100";
+  "w-full resize-none rounded-xl border border-slate-300 bg-white px-3.5 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-500 hover:border-slate-400 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500";
 
 // ======================================================
 // CONTACT FORM
@@ -640,7 +640,7 @@ function ContactForm({
             <div className="relative">
               <Globe
                 size={16}
-                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500"
               />
 
               <input
@@ -927,7 +927,7 @@ function ContactForm({
             <div className="relative">
               <Tag
                 size={16}
-                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500"
               />
 
               <input
@@ -1018,7 +1018,7 @@ function InfoCard({
         </div>
 
         <div className="min-w-0">
-          <p className="text-xs font-medium text-slate-400">
+          <p className="text-xs font-medium text-slate-500">
             {label}
           </p>
 
@@ -1041,7 +1041,7 @@ function Detail({
 }) {
   return (
     <div>
-      <p className="text-xs font-medium text-slate-400">
+      <p className="text-xs font-medium text-slate-500">
         {label}
       </p>
 
@@ -1103,7 +1103,7 @@ function ContactDetails({
                   </span>
                 </div>
 
-                <p className="mt-1 text-sm text-slate-400">
+                <p className="mt-1 text-sm text-slate-500">
                   {contact.designation ||
                     "No designation"}
 
@@ -1288,7 +1288,7 @@ function ContactDetails({
         {/* SIDE */}
         <div className="space-y-3">
           <div className="rounded-3xl bg-slate-950 p-5 text-white shadow-xl">
-            <div className="flex items-center gap-2 text-slate-400">
+            <div className="flex items-center gap-2 text-slate-500">
               <Calendar size={15} />
 
               <span className="text-xs font-semibold">
@@ -1304,7 +1304,7 @@ function ContactDetails({
 
             <div className="mt-5 h-px bg-white/10" />
 
-            <div className="mt-4 flex items-center gap-2 text-slate-400">
+            <div className="mt-4 flex items-center gap-2 text-slate-500">
               <Clock3 size={15} />
 
               <span className="text-xs font-semibold">
@@ -2124,7 +2124,7 @@ export default function Contacts() {
   // ======================================================
 
   return (
-    <div className="min-h-screen bg-[#f6f8fb] p-4 md:p-6 lg:p-8">
+    <div className="min-h-screen bg-surface p-4 text-slate-900 sm:p-6 lg:p-8">
       <div className="mx-auto max-w-[1600px] space-y-6">
         {/* ==================================================
             PREMIUM HEADER
@@ -2148,7 +2148,7 @@ export default function Contacts() {
                 Contacts
               </h1>
 
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
                 Manage customer contacts,
                 companies, ownership and
                 follow-ups from one
@@ -2289,7 +2289,7 @@ export default function Contacts() {
             <div className="relative min-w-0 flex-1">
               <Search
                 size={18}
-                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500"
               />
 
               <input
@@ -2302,7 +2302,7 @@ export default function Contacts() {
                   setPage(1);
                 }}
                 placeholder="Search contacts by name, email, phone, designation..."
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-4 text-sm outline-none transition focus:border-slate-300 focus:bg-white focus:ring-4 focus:ring-slate-100"
+                className="w-full rounded-xl border border-slate-300 bg-slate-50 py-3 pl-10 pr-4 text-sm outline-none transition focus:border-brand-500 focus:bg-white focus:ring-4 focus:ring-brand-500/15 text-slate-900 placeholder:text-slate-500 hover:border-slate-400 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500"
               />
             </div>
 
@@ -2318,7 +2318,7 @@ export default function Contacts() {
 
                   setPage(1);
                 }}
-                className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-4 focus:ring-slate-100"
+                className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-4 focus:ring-brand-500/15 placeholder:text-slate-500 transition hover:border-slate-400 focus:border-brand-500 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500"
               >
                 <option value="ALL">
                   All Status
@@ -2347,7 +2347,7 @@ export default function Contacts() {
 
                   setPage(1);
                 }}
-                className="max-w-[220px] rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-4 focus:ring-slate-100"
+                className="max-w-[220px] rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-4 focus:ring-brand-500/15 placeholder:text-slate-500 transition hover:border-slate-400 focus:border-brand-500 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500"
               >
                 <option value="ALL">
                   All Companies
@@ -2380,7 +2380,7 @@ export default function Contacts() {
 
                   setPage(1);
                 }}
-                className="max-w-[220px] rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-4 focus:ring-slate-100"
+                className="max-w-[220px] rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-4 focus:ring-brand-500/15 placeholder:text-slate-500 transition hover:border-slate-400 focus:border-brand-500 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500"
               >
                 <option value="ALL">
                   All Owners
@@ -2427,7 +2427,7 @@ export default function Contacts() {
                 Contact Directory
               </h2>
 
-              <p className="mt-1 text-xs text-slate-400">
+              <p className="mt-1 text-xs text-slate-500">
                 Showing{" "}
                 {
                   displayedContacts.length
@@ -2451,7 +2451,7 @@ export default function Contacts() {
 
                   setPage(1);
                 }}
-                className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold text-slate-600 outline-none"
+                className="rounded-lg border border-slate-300 px-3 py-2 text-xs font-bold text-slate-600 outline-none bg-white placeholder:text-slate-500 transition hover:border-slate-400 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500"
               >
                 <option value={10}>
                   10 / page
@@ -2477,7 +2477,7 @@ export default function Contacts() {
               <div className="text-center">
                 <RefreshCw
                   size={32}
-                  className="mx-auto animate-spin text-slate-400"
+                  className="mx-auto animate-spin text-slate-500"
                 />
 
                 <p className="mt-3 text-sm font-medium text-slate-500">
@@ -2491,7 +2491,7 @@ export default function Contacts() {
               <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100">
                 <Users
                   size={28}
-                  className="text-slate-400"
+                  className="text-slate-500"
                 />
               </div>
 
@@ -2521,7 +2521,7 @@ export default function Contacts() {
             <>
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[1250px] text-left">
-                  <thead className="bg-slate-50 text-[11px] uppercase tracking-wider text-slate-400">
+                  <thead className="bg-slate-50 text-[11px] uppercase tracking-wider text-slate-500">
                     <tr>
                       <th className="px-5 py-4 font-black">
                         <button
@@ -2662,7 +2662,7 @@ export default function Contacts() {
                                       "Unnamed Contact"}
                                   </p>
 
-                                  <p className="mt-1 max-w-[190px] truncate text-xs text-slate-400">
+                                  <p className="mt-1 max-w-[190px] truncate text-xs text-slate-500">
                                     {contact.designation ||
                                       "No designation"}
                                   </p>
@@ -2676,7 +2676,7 @@ export default function Contacts() {
                                 <p className="flex items-center gap-1.5 truncate text-sm font-bold text-slate-700">
                                   <Building2
                                     size={14}
-                                    className="shrink-0 text-slate-400"
+                                    className="shrink-0 text-slate-500"
                                   />
 
                                   {contact
@@ -2685,7 +2685,7 @@ export default function Contacts() {
                                     "—"}
                                 </p>
 
-                                <p className="mt-1 text-xs text-slate-400">
+                                <p className="mt-1 text-xs text-slate-500">
                                   {contact.source ||
                                     "No source"}
                                 </p>
@@ -2734,7 +2734,7 @@ export default function Contacts() {
                                       "Unassigned"}
                                   </p>
 
-                                  <p className="truncate text-[10px] text-slate-400">
+                                  <p className="truncate text-[10px] text-slate-500">
                                     {contact
                                       .owner
                                       ?.email ||
@@ -2768,7 +2768,7 @@ export default function Contacts() {
                                   )}
                                 </p>
 
-                                <p className="mt-1 text-slate-400">
+                                <p className="mt-1 text-slate-500">
                                   Last:{" "}
                                   {formatDate(
                                     contact.lastContactAt
@@ -2788,7 +2788,7 @@ export default function Contacts() {
                                     )
                                   }
                                   title="View"
-                                  className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+                                  className="rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
                                 >
                                   <Eye
                                     size={
@@ -2805,7 +2805,7 @@ export default function Contacts() {
                                     )
                                   }
                                   title="Edit"
-                                  className="rounded-lg p-2 text-slate-400 transition hover:bg-blue-50 hover:text-blue-600"
+                                  className="rounded-lg p-2 text-slate-500 transition hover:bg-blue-50 hover:text-blue-600"
                                 >
                                   <Edit3
                                     size={
@@ -2822,7 +2822,7 @@ export default function Contacts() {
                                     )
                                   }
                                   title="Delete"
-                                  className="rounded-lg p-2 text-slate-400 transition hover:bg-rose-50 hover:text-rose-600"
+                                  className="rounded-lg p-2 text-slate-500 transition hover:bg-rose-50 hover:text-rose-600"
                                 >
                                   <Trash2
                                     size={
@@ -2834,7 +2834,7 @@ export default function Contacts() {
                                 <button
                                   type="button"
                                   title="More"
-                                  className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+                                  className="rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
                                 >
                                   <MoreHorizontal
                                     size={

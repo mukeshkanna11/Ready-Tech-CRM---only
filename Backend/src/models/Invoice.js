@@ -120,6 +120,13 @@ const invoiceSchema = new mongoose.Schema(
       index: true,
     },
 
+    salesOrder: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'SalesOrder',
+      default: null,
+      index: true,
+    },
+
     // ====================================================
     // CRM RELATIONSHIPS
     // ====================================================
@@ -186,6 +193,15 @@ const invoiceSchema = new mongoose.Schema(
     reverseCharge: {
       type: Boolean,
       default: false,
+    },
+
+    // Drives the GST split:
+    // CGST_SGST -> intra-state (tax split in half)
+    // IGST      -> inter-state (full tax as IGST)
+    taxMode: {
+      type: String,
+      enum: ['CGST_SGST', 'IGST'],
+      default: 'CGST_SGST',
     },
 
     // ====================================================
@@ -293,6 +309,20 @@ const invoiceSchema = new mongoose.Schema(
       trim: true,
       default: '',
     },
+
+    termsAndConditions: {
+      type: String,
+      trim: true,
+      maxlength: 5000,
+      default: '',
+    },
+
+    cancellationReason: {
+      type: String,
+      trim: true,
+      maxlength: 2000,
+      default: '',
+    },
   },
   {
     timestamps: true,
@@ -329,7 +359,10 @@ invoiceSchema.index({
 // NORMALIZATION
 // ======================================================
 
-invoiceSchema.pre('save', function (next) {
+// Runs on pre('validate') - like Lead and SalesOrder -
+// so the derived values are corrected before the
+// schema validators see them.
+invoiceSchema.pre('validate', function normalizeInvoice() {
   if (this.invoiceNumber) {
     this.invoiceNumber = this.invoiceNumber
       .trim()
@@ -350,8 +383,6 @@ invoiceSchema.pre('save', function (next) {
     0,
     this.grandTotal - this.amountPaid
   );
-
-  next();
 });
 
 module.exports = mongoose.model('Invoice', invoiceSchema);

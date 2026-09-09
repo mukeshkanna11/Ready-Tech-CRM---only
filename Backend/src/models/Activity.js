@@ -1,4 +1,4 @@
-// src/models/Activity.js
+"use strict";
 
 const mongoose = require("mongoose");
 
@@ -43,12 +43,58 @@ const ACTIVITY_OUTCOMES = [
   "OTHER",
 ];
 
+const RECURRENCE_TYPES = [
+  "DAILY",
+  "WEEKLY",
+  "MONTHLY",
+  "YEARLY",
+];
+
+const attachmentSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      trim: true,
+      maxlength: 255,
+    },
+    url: {
+      type: String,
+      trim: true,
+      maxlength: 2000,
+    },
+    mimeType: {
+      type: String,
+      trim: true,
+      maxlength: 100,
+    },
+    size: {
+      type: Number,
+      min: 0,
+    },
+  },
+  { _id: false }
+);
+
+const recurrenceSchema = new mongoose.Schema(
+  {
+    type: {
+      type: String,
+      enum: RECURRENCE_TYPES,
+    },
+    interval: {
+      type: Number,
+      min: 1,
+      default: 1,
+    },
+    endDate: {
+      type: Date,
+    },
+  },
+  { _id: false }
+);
+
 const activitySchema = new mongoose.Schema(
   {
-    // =====================================================
-    // BASIC INFORMATION
-    // =====================================================
-
     type: {
       type: String,
       enum: ACTIVITY_TYPES,
@@ -68,10 +114,6 @@ const activitySchema = new mongoose.Schema(
       trim: true,
       maxlength: 5000,
     },
-
-    // =====================================================
-    // STATUS / PRIORITY
-    // =====================================================
 
     status: {
       type: String,
@@ -99,10 +141,6 @@ const activitySchema = new mongoose.Schema(
       maxlength: 3000,
     },
 
-    // =====================================================
-    // SCHEDULING
-    // =====================================================
-
     scheduledAt: {
       type: Date,
       index: true,
@@ -127,14 +165,10 @@ const activitySchema = new mongoose.Schema(
       max: 1440,
     },
 
-    // =====================================================
-    // OWNERSHIP
-    // =====================================================
-
     assignedTo: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
+      required: [true, "Assigned user is required"],
       index: true,
     },
 
@@ -150,10 +184,7 @@ const activitySchema = new mongoose.Schema(
       ref: "User",
     },
 
-    // =====================================================
-    // CRM RELATIONSHIPS
-    // =====================================================
-
+    // CRM relationships
     lead: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Lead",
@@ -177,10 +208,6 @@ const activitySchema = new mongoose.Schema(
       ref: "Opportunity",
       index: true,
     },
-
-    // =====================================================
-    // COMMUNICATION DETAILS
-    // =====================================================
 
     location: {
       type: String,
@@ -207,10 +234,7 @@ const activitySchema = new mongoose.Schema(
       maxlength: 254,
     },
 
-    // =====================================================
-    // REMINDER
-    // =====================================================
-
+    // Reminder
     reminderEnabled: {
       type: Boolean,
       default: false,
@@ -226,40 +250,15 @@ const activitySchema = new mongoose.Schema(
       default: false,
     },
 
-    // =====================================================
-    // RECURRENCE
-    // =====================================================
-
+    // Recurrence
     isRecurring: {
       type: Boolean,
       default: false,
     },
 
     recurrence: {
-      type: {
-        type: String,
-        enum: [
-          "DAILY",
-          "WEEKLY",
-          "MONTHLY",
-          "YEARLY",
-        ],
-      },
-
-      interval: {
-        type: Number,
-        min: 1,
-        default: 1,
-      },
-
-      endDate: {
-        type: Date,
-      },
+      type: recurrenceSchema,
     },
-
-    // =====================================================
-    // TAGS
-    // =====================================================
 
     tags: [
       {
@@ -270,40 +269,7 @@ const activitySchema = new mongoose.Schema(
       },
     ],
 
-    // =====================================================
-    // ATTACHMENTS
-    // =====================================================
-
-    attachments: [
-      {
-        name: {
-          type: String,
-          trim: true,
-          maxlength: 255,
-        },
-
-        url: {
-          type: String,
-          trim: true,
-          maxlength: 2000,
-        },
-
-        mimeType: {
-          type: String,
-          trim: true,
-          maxlength: 100,
-        },
-
-        size: {
-          type: Number,
-          min: 0,
-        },
-      },
-    ],
-
-    // =====================================================
-    // INTERNAL NOTES
-    // =====================================================
+    attachments: [attachmentSchema],
 
     internalNotes: {
       type: String,
@@ -311,10 +277,7 @@ const activitySchema = new mongoose.Schema(
       maxlength: 5000,
     },
 
-    // =====================================================
-    // SOFT DELETE
-    // =====================================================
-
+    // Soft delete
     isDeleted: {
       type: Boolean,
       default: false,
@@ -336,75 +299,57 @@ const activitySchema = new mongoose.Schema(
   }
 );
 
-// =========================================================
-// INDEXES
-// =========================================================
-
-// Activity list / filtering
+// Indexes
 activitySchema.index({
   assignedTo: 1,
   status: 1,
   scheduledAt: 1,
 });
 
-// Calendar queries
 activitySchema.index({
   scheduledAt: 1,
   status: 1,
 });
 
-// Lead activity timeline
 activitySchema.index({
   lead: 1,
   createdAt: -1,
 });
 
-// Company activity timeline
 activitySchema.index({
   company: 1,
   createdAt: -1,
 });
 
-// Contact activity timeline
 activitySchema.index({
   contact: 1,
   createdAt: -1,
 });
 
-// Opportunity activity timeline
 activitySchema.index({
   opportunity: 1,
   createdAt: -1,
 });
 
-// Reminder worker
 activitySchema.index({
   reminderEnabled: 1,
   reminderSent: 1,
   reminderAt: 1,
 });
 
-// Soft-delete filtering
 activitySchema.index({
   isDeleted: 1,
   createdAt: -1,
 });
 
-// =========================================================
-// VALIDATION
-// =========================================================
-
-activitySchema.pre("validate", function (next) {
-  // Completed activity should have completedAt
-  if (
-    this.status === "COMPLETED" &&
-    !this.completedAt
-  ) {
+// Validation
+activitySchema.pre("validate", function () {
+  // Completed activity automatically gets completedAt
+  if (this.status === "COMPLETED" && !this.completedAt) {
     this.completedAt = new Date();
   }
 
-  // Non-completed activity should not accidentally retain
-  // completion timestamp when status is changed back.
+  // Clear completion date when moved back
   if (
     this.status !== "COMPLETED" &&
     this.isModified("status") &&
@@ -413,37 +358,33 @@ activitySchema.pre("validate", function (next) {
     this.completedAt = undefined;
   }
 
-  // Reminder cannot be enabled without reminderAt
-  if (
-    this.reminderEnabled &&
-    !this.reminderAt
-  ) {
-    return next(
-      new Error(
-        "reminderAt is required when reminderEnabled is true"
-      )
+  // Reminder validation
+  if (this.reminderEnabled && !this.reminderAt) {
+    throw new Error(
+      "reminderAt is required when reminderEnabled is true"
     );
   }
 
-  // Recurring activity requires recurrence configuration
-  if (
-    this.isRecurring &&
-    !this.recurrence?.type
-  ) {
-    return next(
-      new Error(
-        "recurrence.type is required for recurring activities"
-      )
+  // Recurrence validation
+  if (this.isRecurring && !this.recurrence?.type) {
+    throw new Error(
+      "recurrence.type is required for recurring activities"
     );
   }
 
-  next();
+  // Recurrence end date validation
+  if (
+    this.recurrence?.endDate &&
+    this.scheduledAt &&
+    this.recurrence.endDate < this.scheduledAt
+  ) {
+    throw new Error(
+      "recurrence.endDate cannot be before scheduledAt"
+    );
+  }
 });
 
-module.exports = mongoose.model(
-  "Activity",
-  activitySchema
-);
+module.exports = mongoose.model("Activity", activitySchema);
 
 module.exports.ACTIVITY_TYPES = ACTIVITY_TYPES;
 module.exports.ACTIVITY_STATUS = ACTIVITY_STATUS;

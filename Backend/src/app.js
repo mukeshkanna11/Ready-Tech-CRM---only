@@ -31,6 +31,11 @@ const notificationRoutes = require('./routes/notification.routes');
 const dashboardRoutes = require('./routes/dashboard.routes');
 const reportRoutes = require('./routes/report.routes');
 const salesOrderRoutes = require('./routes/salesOrder.routes');
+const paymentRoutes = require('./routes/payment.routes');
+const automationRoutes = require('./routes/automation.routes');
+const emailWebhookRoutes =
+  require('./routes/emailWebhook.routes');
+  const emailEnquiryRoutes = require('./routes/emailEnquiry.routes');
 const app = express();
 
 app.disable('x-powered-by');
@@ -49,6 +54,7 @@ const allowedOrigins = String(env.clientUrl || '')
 const defaultAllowedOrigins = [
   'https://readytech-crm.vercel.app',
   'http://localhost:5173',
+  'http://localhost:5174',
   'http://localhost:3000',
 ];
 
@@ -327,6 +333,17 @@ app.use(
   notificationRoutes
 );
 
+app.use(
+  '/api/v1/email',
+  emailWebhookRoutes
+);
+
+
+app.use(
+  '/api/v1/email',
+  emailEnquiryRoutes
+);
+
 // ======================================================
 // DASHBOARD
 // ======================================================
@@ -344,6 +361,22 @@ app.use(
   `${api}/reports`,
   reportRoutes
 );
+
+// ======================================================
+// payment
+// ======================================================
+
+app.use(
+  '/api/v1/payments',
+  paymentRoutes
+);
+
+// ======================================================
+// automation
+// ======================================================
+
+app.use('/api/v1/automations', automationRoutes);
+
 
 // ======================================================
 // 404

@@ -1,9 +1,9 @@
 'use strict';
 
 const Invoice = require('../models/Invoice');
+const SalesOrder = require('../models/SalesOrder');
 
-const generateNumber = require('../utils/generateNumber');
-const { calculateTotals } = require('./quotation.service');
+const ApiError = require('../utils/ApiError');
 
 // ======================================================
 // INVOICE SERVICE
@@ -146,68 +146,142 @@ const normalizeItems = (items) => {
         safeNumber(item.discountRate, 0)
       )
     ),
+
+    discountAmount: Math.max(
+      0,
+      roundMoney(item.discountAmount)
+    ),
   }));
 };
 
 
 // ======================================================
-// CALCULATE ITEM TOTALS
+// CALCULATE ITEM + INVOICE TOTALS
 // ======================================================
 //
-// This service primarily relies on quotation.service's
-// calculateTotals() so quotation and invoice calculations
-// remain consistent.
+// Self-contained GST-aware calculation.
 //
-// If calculateTotals() returns item-level calculations,
-// we preserve them.
+// Per item:
+//   lineSubtotal   = quantity * unitPrice
+//   discountAmount = discountRate % of lineSubtotal
+//                    (or the explicit discountAmount)
+//   taxableAmount  = lineSubtotal - discountAmount
+//   taxAmount      = taxRate % of taxableAmount
+//   total          = taxableAmount + taxAmount
+//
+// Invoice level GST split is driven by taxMode:
+//   CGST_SGST -> intra-state, tax split in half
+//   IGST      -> inter-state, full tax as IGST
 // ======================================================
 
-const calculateInvoiceTotals = (items) => {
+const calculateInvoiceTotals = (
+  items,
+  taxMode = 'CGST_SGST'
+) => {
   const normalizedItems =
     normalizeItems(items);
 
-  const calculated =
-    calculateTotals(normalizedItems);
+  let subtotal = 0;
+  let discountTotal = 0;
+  let taxableTotal = 0;
+  let taxTotal = 0;
+
+  const calculatedItems =
+    normalizedItems.map((item) => {
+      const lineSubtotal =
+        roundMoney(
+          item.quantity *
+            item.unitPrice
+        );
+
+      // An explicit amount wins only when no
+      // percentage was supplied.
+      const discountAmount =
+        item.discountRate > 0
+          ? roundMoney(
+              lineSubtotal *
+                (item.discountRate / 100)
+            )
+          : Math.min(
+              lineSubtotal,
+              Math.max(
+                0,
+                roundMoney(
+                  item.discountAmount
+                )
+              )
+            );
+
+      const taxableAmount =
+        roundMoney(
+          Math.max(
+            0,
+            lineSubtotal -
+              discountAmount
+          )
+        );
+
+      const taxAmount =
+        roundMoney(
+          taxableAmount *
+            (item.taxRate / 100)
+        );
+
+      const total =
+        roundMoney(
+          taxableAmount + taxAmount
+        );
+
+      subtotal += lineSubtotal;
+      discountTotal += discountAmount;
+      taxableTotal += taxableAmount;
+      taxTotal += taxAmount;
+
+      return {
+        ...item,
+        discountAmount,
+        taxableAmount,
+        taxAmount,
+        total,
+      };
+    });
+
+  subtotal = roundMoney(subtotal);
+  discountTotal = roundMoney(discountTotal);
+  taxableTotal = roundMoney(taxableTotal);
+  taxTotal = roundMoney(taxTotal);
+
+  // ----------------------------------------------------
+  // GST split
+  // ----------------------------------------------------
+
+  let cgstTotal = 0;
+  let sgstTotal = 0;
+  let igstTotal = 0;
+
+  if (taxMode === 'IGST') {
+    igstTotal = taxTotal;
+  } else {
+    cgstTotal = roundMoney(taxTotal / 2);
+
+    // Keep the halves summing exactly to taxTotal.
+    sgstTotal = roundMoney(
+      taxTotal - cgstTotal
+    );
+  }
 
   return {
-    items:
-      calculated.items ||
-      normalizedItems,
-
-    subtotal: roundMoney(
-      calculated.subtotal
-    ),
-
-    discountTotal: roundMoney(
-      calculated.discountTotal
-    ),
-
-    taxableTotal: roundMoney(
-      calculated.taxableTotal ??
-      (
-        safeNumber(calculated.subtotal) -
-        safeNumber(calculated.discountTotal)
-      )
-    ),
-
-    taxTotal: roundMoney(
-      calculated.taxTotal
-    ),
-
-    cgstTotal: roundMoney(
-      calculated.cgstTotal
-    ),
-
-    sgstTotal: roundMoney(
-      calculated.sgstTotal
-    ),
-
-    igstTotal: roundMoney(
-      calculated.igstTotal
-    ),
+    items: calculatedItems,
+    subtotal,
+    discountTotal,
+    taxableTotal,
+    taxTotal,
+    cgstTotal,
+    sgstTotal,
+    igstTotal,
 
     grandTotal: roundMoney(
-      calculated.grandTotal
+      taxableTotal + taxTotal
     ),
   };
 };
@@ -215,6 +289,15 @@ const calculateInvoiceTotals = (items) => {
 
 // ======================================================
 // GENERATE INVOICE NUMBER
+// ======================================================
+//
+// Derived from the Invoice collection itself so numbers
+// survive a server restart.
+//
+// Format: INV-<year>-<00001>
+//
+// Zero padding keeps lexicographic sort identical to
+// numeric sort.
 // ======================================================
 
 const getInvoiceNumber = async (
@@ -227,7 +310,38 @@ const getInvoiceNumber = async (
     return supplied.toUpperCase();
   }
 
-  return generateNumber('INV');
+  const prefix =
+    `INV-${new Date().getFullYear()}-`;
+
+  const last =
+    await Invoice.findOne({
+      invoiceNumber: {
+        $regex:
+          `^${prefix}\\d+$`,
+      },
+    })
+      .sort({
+        invoiceNumber: -1,
+      })
+      .select('invoiceNumber')
+      .lean();
+
+  let next = 1;
+
+  if (last?.invoiceNumber) {
+    const parsed = parseInt(
+      last.invoiceNumber.slice(
+        prefix.length
+      ),
+      10
+    );
+
+    if (Number.isFinite(parsed)) {
+      next = parsed + 1;
+    }
+  }
+
+  return `${prefix}${String(next).padStart(5, '0')}`;
 };
 
 
@@ -304,12 +418,35 @@ const prepareInvoice = async (
   }
 
   // ----------------------------------------------------
+  // Tax mode (drives the CGST/SGST vs IGST split)
+  // ----------------------------------------------------
+
+  data.taxMode =
+    payload.taxMode === 'IGST'
+      ? 'IGST'
+      : 'CGST_SGST';
+
+  // ----------------------------------------------------
+  // Terms & conditions
+  // ----------------------------------------------------
+
+  if (
+    payload.termsAndConditions !== undefined
+  ) {
+    data.termsAndConditions =
+      normalizeString(
+        payload.termsAndConditions
+      );
+  }
+
+  // ----------------------------------------------------
   // Items
   // ----------------------------------------------------
 
   const totals =
     calculateInvoiceTotals(
-      payload.items
+      payload.items,
+      data.taxMode
     );
 
   data.items = totals.items;
@@ -388,6 +525,95 @@ const prepareInvoice = async (
   }
 
   return data;
+};
+
+
+// ======================================================
+// BUILD INVOICE FROM SALES ORDER
+// ======================================================
+// Converts an existing sales order into an invoice
+// payload. Totals are still recalculated by
+// prepareInvoice(), so the sales order totals are only
+// used as the source of items.
+// ======================================================
+
+const buildInvoiceFromSalesOrder = async (
+  salesOrderId,
+  overrides = {}
+) => {
+  const salesOrder =
+    await SalesOrder.findById(
+      salesOrderId
+    ).lean();
+
+  if (!salesOrder) {
+    throw new ApiError(
+      404,
+      'Sales order not found',
+      'SALES_ORDER_NOT_FOUND'
+    );
+  }
+
+  if (
+    salesOrder.status === 'CANCELLED'
+  ) {
+    throw new ApiError(
+      400,
+      'A cancelled sales order cannot be invoiced',
+      'SALES_ORDER_CANCELLED'
+    );
+  }
+
+  // ----------------------------------------------------
+  // Map sales order items to invoice items
+  // ----------------------------------------------------
+
+  const items =
+    (salesOrder.items || []).map(
+      (item) => ({
+        product: item.product || null,
+        description: item.description,
+        hsnSac: item.hsnSac || '',
+        quantity: item.quantity,
+        unit: item.unit || 'PCS',
+        unitPrice: item.unitPrice,
+        discountRate: item.discountRate,
+        taxRate: item.taxRate,
+      })
+    );
+
+  if (items.length === 0) {
+    throw new ApiError(
+      400,
+      'This sales order has no items to invoice',
+      'SALES_ORDER_EMPTY'
+    );
+  }
+
+  return prepareInvoice({
+    salesOrder: salesOrder._id,
+    quotation:
+      salesOrder.quotation || null,
+    company: salesOrder.company || null,
+    contact: salesOrder.contact || null,
+    owner: salesOrder.owner || null,
+
+    currency: salesOrder.currency,
+
+    placeOfSupply:
+      salesOrder.placeOfSupply || '',
+
+    termsAndConditions:
+      salesOrder.termsAndConditions || '',
+
+    notes: salesOrder.notes || '',
+
+    items,
+
+    status: 'DRAFT',
+
+    ...overrides,
+  });
 };
 
 
@@ -667,9 +893,11 @@ const getPaymentSummary = (
 
 module.exports = {
   prepareInvoice,
+  buildInvoiceFromSalesOrder,
   syncPaymentStatus,
   markOverdueInvoices,
   getPaymentSummary,
   calculateInvoiceTotals,
+  getInvoiceNumber,
   roundMoney,
 };

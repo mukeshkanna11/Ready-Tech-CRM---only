@@ -445,7 +445,7 @@ export default function Login() {
   // ==========================================================
 
   return (
-    <div className="min-h-screen overflow-hidden bg-[#f7f8fc] text-slate-900">
+    <div className="min-h-screen overflow-hidden bg-surface text-slate-900">
 
       {/* ======================================================
           BACKGROUND
@@ -485,7 +485,7 @@ export default function Login() {
 
             <div className="flex items-center gap-4">
 
-              <div className="flex items-center justify-center w-12 h-12 overflow-hidden bg-white shadow-xl rounded-xl">
+              <div className="flex items-center justify-center w-12 h-12 overflow-hidden bg-black shadow-xl rounded-xl">
 
                 <img
                   src={companyLogo}
@@ -504,7 +504,7 @@ export default function Login() {
                   </span>
                 </h2>
 
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-slate-300">
                   Customer Relationship Platform
                 </p>
 
@@ -585,13 +585,13 @@ export default function Login() {
                   Built for modern businesses
                 </p>
 
-                <p className="mt-1 text-xs text-slate-500">
+                <p className="mt-1 text-xs text-slate-400">
                   CRM • Sales • Customer Success
                 </p>
 
               </div>
 
-              <div className="flex items-center gap-2 text-xs text-slate-400">
+              <div className="flex items-center gap-2 text-xs text-slate-300">
 
                 <ShieldCheck
                   size={15}
@@ -620,7 +620,7 @@ export default function Login() {
 
             <div className="flex items-center gap-3 mb-8 lg:hidden">
 
-              <div className="flex items-center justify-center w-11 h-11 overflow-hidden bg-white border shadow-sm rounded-xl border-slate-200">
+              <div className="flex items-center justify-center w-11 h-11 overflow-hidden bg-black border shadow-sm rounded-xl border-slate-200">
 
                 <img
                   src={companyLogo}
@@ -639,7 +639,7 @@ export default function Login() {
                   </span>
                 </p>
 
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-slate-500">
                   Customer Relationship Platform
                 </p>
 
@@ -649,7 +649,7 @@ export default function Login() {
 
             {/* LOGIN CARD */}
 
-            <div className="relative overflow-hidden bg-white border shadow-[0_25px_80px_rgba(15,23,42,0.10)] rounded-[28px] border-slate-200/80">
+            <div className="relative overflow-hidden bg-white border shadow-[0_25px_80px_rgba(15,23,42,0.10)] rounded-[28px] border-slate-200">
 
               {/* TOP ACCENT */}
 
@@ -663,7 +663,7 @@ export default function Login() {
 
                   {/* LOGO */}
 
-                  <div className="flex items-center justify-center w-16 h-16 mb-6 overflow-hidden bg-white border shadow-sm rounded-2xl border-slate-200">
+                  <div className="flex items-center justify-center w-16 h-16 mb-6 overflow-hidden bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-600 border shadow-sm rounded-2xl border-slate-200">
 
                     <img
                       src={companyLogo}
@@ -739,7 +739,7 @@ export default function Login() {
 
                       <Mail
                         size={18}
-                        className="absolute z-10 text-slate-400 -translate-y-1/2 left-4 top-1/2"
+                        className="absolute z-10 text-slate-500 -translate-y-1/2 left-4 top-1/2"
                       />
 
                       <input
@@ -751,7 +751,7 @@ export default function Login() {
                         placeholder="you@company.com"
                         autoComplete="email"
                         disabled={loading}
-                        className="w-full h-12 pl-11 pr-4 text-sm font-semibold text-slate-900 placeholder:text-slate-400 transition-all duration-200 border outline-none rounded-xl border-slate-200 bg-white hover:border-slate-300 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500"
+                        className="w-full h-12 pl-11 pr-4 text-sm font-semibold text-slate-900 placeholder:text-slate-400 transition-all duration-200 border outline-none rounded-xl border-slate-300 bg-white hover:border-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500"
                       />
 
                     </div>
@@ -785,7 +785,7 @@ export default function Login() {
 
                       <Lock
                         size={18}
-                        className="absolute z-10 text-slate-400 -translate-y-1/2 left-4 top-1/2"
+                        className="absolute z-10 text-slate-500 -translate-y-1/2 left-4 top-1/2"
                       />
 
                       <input
@@ -801,7 +801,7 @@ export default function Login() {
                         placeholder="Enter your password"
                         autoComplete="current-password"
                         disabled={loading}
-                        className="w-full h-12 pl-11 pr-12 text-sm font-semibold text-slate-900 placeholder:text-slate-400 transition-all duration-200 border outline-none rounded-xl border-slate-200 bg-white hover:border-slate-300 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500"
+                        className="w-full h-12 pl-11 pr-12 text-sm font-semibold text-slate-900 placeholder:text-slate-400 transition-all duration-200 border outline-none rounded-xl border-slate-300 bg-white hover:border-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500"
                       />
 
                       <button
@@ -817,7 +817,7 @@ export default function Login() {
                             ? "Hide password"
                             : "Show password"
                         }
-                        className="absolute p-2 -translate-y-1/2 rounded-lg right-2.5 top-1/2 text-slate-400 hover:text-indigo-600 hover:bg-slate-100 disabled:opacity-50"
+                        className="absolute p-2 -translate-y-1/2 rounded-lg right-2.5 top-1/2 text-slate-500 hover:text-indigo-600 hover:bg-slate-100 disabled:opacity-50"
                       >
 
                         {showPassword ? (
@@ -836,7 +836,7 @@ export default function Login() {
 
                   <div className="flex items-center justify-between">
 
-                    <label className="flex items-center gap-2 text-sm cursor-pointer text-slate-600">
+                    <label className="flex items-center gap-2 text-sm font-medium cursor-pointer text-slate-700">
 
                       <input
                         type="checkbox"
@@ -847,14 +847,14 @@ export default function Login() {
                           )
                         }
                         disabled={loading}
-                        className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                        className="w-4 h-4 rounded border-slate-400 accent-indigo-600 focus:ring-2 focus:ring-indigo-500/30"
                       />
 
                       Remember me
 
                     </label>
 
-                    <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-400">
+                    <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500">
 
                       <Lock size={13} />
 
@@ -898,7 +898,7 @@ export default function Login() {
 
                 {/* TRUST FEATURES */}
 
-                <div className="grid grid-cols-3 gap-3 pt-6 mt-7 border-t border-slate-100">
+                <div className="grid grid-cols-3 gap-3 pt-6 mt-7 border-t border-slate-200">
 
                   <TrustItem
                     icon={<ShieldCheck size={16} />}
@@ -925,12 +925,12 @@ export default function Login() {
 
             <div className="mt-6 text-center">
 
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-slate-500">
                 © {new Date().getFullYear()} ReadyTech Solutions.
                 All rights reserved.
               </p>
 
-              <p className="mt-1 text-[11px] text-slate-300">
+              <p className="mt-1 text-[11px] text-slate-500">
                 CRM Platform • Secure Business Management
               </p>
 
@@ -966,7 +966,7 @@ function FeatureCard({
         {title}
       </h3>
 
-      <p className="mt-1 text-xs leading-5 text-slate-400">
+      <p className="mt-1 text-xs leading-5 text-slate-300">
         {text}
       </p>
 
@@ -983,9 +983,9 @@ function TrustItem({
   text,
 }) {
   return (
-    <div className="flex items-center justify-center gap-1.5 text-xs font-medium text-slate-400">
+    <div className="flex items-center justify-center gap-1.5 text-xs font-semibold text-slate-600">
 
-      <span className="text-indigo-500">
+      <span className="text-indigo-600">
         {icon}
       </span>
 

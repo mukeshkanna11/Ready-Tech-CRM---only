@@ -7,6 +7,8 @@ import {
   CalendarClock,
   Bell,
   Settings,
+  FileText,
+  Wallet,
   X,
 } from "lucide-react";
 
@@ -52,6 +54,16 @@ const navigation = [
         name: "Follow-ups",
         path: "/follow-ups",
         icon: CalendarClock,
+      },
+      {
+        name: "Invoices",
+        path: "/invoices",
+        icon: FileText,
+      },
+      {
+        name: "Payments",
+        path: "/payments",
+        icon: Wallet,
       },
     ],
   },

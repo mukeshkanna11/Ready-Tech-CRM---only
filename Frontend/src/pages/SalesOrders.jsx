@@ -177,38 +177,38 @@ const getErrorMessage = (error, fallback = "Something went wrong.") => {
 const statusMeta = {
   DRAFT: {
     label: "Draft",
-    className: "bg-slate-500/10 text-slate-300 border-slate-500/20",
+    className: "bg-slate-500/10 text-slate-700 border-slate-500/20",
   },
   CONFIRMED: {
     label: "Confirmed",
-    className: "bg-blue-500/10 text-blue-400 border-blue-500/20",
+    className: "bg-blue-50 text-blue-700 border-blue-200",
   },
   PROCESSING: {
     label: "Processing",
-    className: "bg-amber-500/10 text-amber-400 border-amber-500/20",
+    className: "bg-amber-50 text-amber-700 border-amber-200",
   },
   COMPLETED: {
     label: "Completed",
-    className: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+    className: "bg-emerald-50 text-emerald-700 border-emerald-200",
   },
   CANCELLED: {
     label: "Cancelled",
-    className: "bg-red-500/10 text-red-400 border-red-500/20",
+    className: "bg-red-50 text-red-700 border-red-200",
   },
 };
 
 const paymentMeta = {
   UNPAID: {
     label: "Unpaid",
-    className: "bg-red-500/10 text-red-400 border-red-500/20",
+    className: "bg-red-50 text-red-700 border-red-200",
   },
   PARTIAL: {
     label: "Partial",
-    className: "bg-amber-500/10 text-amber-400 border-amber-500/20",
+    className: "bg-amber-50 text-amber-700 border-amber-200",
   },
   PAID: {
     label: "Paid",
-    className: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+    className: "bg-emerald-50 text-emerald-700 border-emerald-200",
   },
 };
 
@@ -250,31 +250,31 @@ function StatCard({
   loading,
 }) {
   return (
-    <div className="group relative overflow-hidden rounded-2xl border border-white/[0.07] bg-[#111827]/80 p-5 shadow-[0_18px_50px_rgba(0,0,0,0.18)] transition hover:-translate-y-0.5 hover:border-white/[0.12]">
-      <div className="absolute -right-10 -top-10 h-28 w-28 rounded-full bg-white/[0.025] blur-2xl transition group-hover:bg-white/[0.05]" />
+    <div className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-[var(--shadow-card)] transition hover:-translate-y-0.5 hover:border-slate-400">
+      <div className="absolute -right-10 -top-10 h-28 w-28 rounded-full bg-slate-50 blur-2xl transition group-hover:bg-brand-100" />
 
       <div className="relative flex items-start justify-between">
         <div>
-          <p className="text-xs font-medium uppercase tracking-[0.12em] text-slate-500">
+          <p className="text-xs font-medium uppercase tracking-[0.12em] text-slate-600">
             {title}
           </p>
 
           {loading ? (
-            <div className="mt-3 h-8 w-28 animate-pulse rounded-lg bg-white/[0.06]" />
+            <div className="mt-3 h-8 w-28 animate-pulse rounded-lg bg-slate-100" />
           ) : (
-            <h3 className="mt-2 text-2xl font-bold tracking-tight text-white">
+            <h3 className="mt-2 text-2xl font-bold tracking-tight text-slate-900">
               {value}
             </h3>
           )}
 
           {subtitle && (
-            <p className="mt-1.5 text-xs text-slate-500">
+            <p className="mt-1.5 text-xs text-slate-600">
               {subtitle}
             </p>
           )}
         </div>
 
-        <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/[0.07] bg-white/[0.035] text-slate-300">
+        <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-700">
           <Icon className="h-5 w-5" />
         </div>
       </div>
@@ -1178,28 +1178,28 @@ export default function SalesOrders() {
   ======================================================= */
 
   return (
-    <div className="min-h-screen bg-[#070b14] text-slate-200">
+    <div className="min-h-screen bg-surface text-slate-900">
       {/* ===================================================
           TOASTS
       =================================================== */}
 
       {success && (
-        <div className="fixed right-5 top-5 z-[100] flex max-w-sm items-start gap-3 rounded-2xl border border-emerald-500/20 bg-[#0d1715] px-4 py-3 shadow-2xl">
-          <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-400" />
+        <div className="fixed right-5 top-5 z-[100] flex max-w-sm items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 shadow-2xl">
+          <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-700" />
 
           <div>
-            <p className="text-sm font-semibold text-white">
+            <p className="text-sm font-semibold text-slate-900">
               Success
             </p>
 
-            <p className="mt-0.5 text-xs text-slate-400">
+            <p className="mt-0.5 text-xs text-slate-600">
               {success}
             </p>
           </div>
 
           <button
             onClick={() => setSuccess("")}
-            className="ml-auto text-slate-500 hover:text-white"
+            className="ml-auto text-slate-600 hover:text-slate-900"
           >
             <X className="h-4 w-4" />
           </button>
@@ -1207,22 +1207,22 @@ export default function SalesOrders() {
       )}
 
       {error && (
-        <div className="fixed right-5 top-5 z-[100] mt-16 flex max-w-sm items-start gap-3 rounded-2xl border border-red-500/20 bg-[#190e12] px-4 py-3 shadow-2xl">
-          <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-red-400" />
+        <div className="fixed right-5 top-5 z-[100] mt-16 flex max-w-sm items-start gap-3 rounded-2xl border border-red-200 bg-rose-50 px-4 py-3 shadow-2xl">
+          <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-red-700" />
 
           <div>
-            <p className="text-sm font-semibold text-white">
+            <p className="text-sm font-semibold text-slate-900">
               Action failed
             </p>
 
-            <p className="mt-0.5 text-xs leading-5 text-slate-400">
+            <p className="mt-0.5 text-xs leading-5 text-slate-600">
               {error}
             </p>
           </div>
 
           <button
             onClick={() => setError("")}
-            className="ml-auto text-slate-500 hover:text-white"
+            className="ml-auto text-slate-600 hover:text-slate-900"
           >
             <X className="h-4 w-4" />
           </button>
@@ -1233,21 +1233,21 @@ export default function SalesOrders() {
           HEADER
       =================================================== */}
 
-      <div className="border-b border-white/[0.06] bg-[#0a0f1a]/90 backdrop-blur-xl">
+      <div className="border-b border-slate-200 bg-white/85 backdrop-blur-xl">
         <div className="mx-auto max-w-[1800px] px-5 py-6 lg:px-8">
           <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
             <div>
               <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/[0.08] bg-white/[0.04]">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-slate-200 bg-slate-100">
                   <ShoppingCart className="h-6 w-6 text-slate-200" />
                 </div>
 
                 <div>
-                  <h1 className="text-2xl font-bold tracking-tight text-white">
+                  <h1 className="text-2xl font-bold tracking-tight text-slate-900">
                     Sales Orders
                   </h1>
 
-                  <p className="mt-1 text-sm text-slate-500">
+                  <p className="mt-1 text-sm text-slate-600">
                     Manage orders, fulfillment, payments and delivery workflow.
                   </p>
                 </div>
@@ -1260,7 +1260,7 @@ export default function SalesOrders() {
                   loadOrders();
                   loadStats();
                 }}
-                className="inline-flex h-10 items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.035] px-3.5 text-sm font-medium text-slate-300 transition hover:bg-white/[0.07] hover:text-white"
+                className="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3.5 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-900"
               >
                 <RefreshCw className="h-4 w-4" />
                 Refresh
@@ -1268,7 +1268,7 @@ export default function SalesOrders() {
 
               <button
                 onClick={openCreate}
-                className="inline-flex h-10 items-center gap-2 rounded-xl bg-white px-4 text-sm font-semibold text-slate-950 shadow-lg shadow-white/10 transition hover:bg-slate-200"
+                className="inline-flex h-10 items-center gap-2 rounded-xl bg-brand-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700"
               >
                 <Plus className="h-4 w-4" />
                 New Sales Order
@@ -1326,10 +1326,10 @@ export default function SalesOrders() {
             TOOLBAR
         ================================================= */}
 
-        <div className="mt-6 rounded-2xl border border-white/[0.07] bg-[#0d1421]/80 p-3 shadow-[0_20px_70px_rgba(0,0,0,0.18)]">
+        <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-3 shadow-[var(--shadow-card)]">
           <div className="flex flex-col gap-3 xl:flex-row xl:items-center">
             <div className="relative min-w-0 flex-1">
-              <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+              <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-600" />
 
               <input
                 value={search}
@@ -1338,7 +1338,7 @@ export default function SalesOrders() {
                   setPage(1);
                 }}
                 placeholder="Search sales order number..."
-                className="h-11 w-full rounded-xl border border-white/[0.07] bg-white/[0.025] pl-10 pr-4 text-sm text-white outline-none placeholder:text-slate-600 focus:border-white/[0.16] focus:bg-white/[0.04]"
+                className="h-11 w-full rounded-xl border border-slate-300 bg-slate-50 pl-10 pr-4 text-sm text-slate-900 outline-none placeholder:text-slate-500 focus:border-brand-500 focus:bg-white transition hover:border-slate-400 focus:ring-4 focus:ring-brand-500/15 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500"
               />
             </div>
 
@@ -1349,7 +1349,7 @@ export default function SalesOrders() {
                   setStatus(event.target.value);
                   setPage(1);
                 }}
-                className="h-11 min-w-[140px] rounded-xl border border-white/[0.07] bg-[#111827] px-3 text-sm text-slate-300 outline-none focus:border-white/[0.16]"
+                className="h-11 min-w-[140px] rounded-xl border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none focus:border-brand-500 placeholder:text-slate-500 transition hover:border-slate-400 focus:ring-4 focus:ring-brand-500/15 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500"
               >
                 <option value="">All Status</option>
                 {STATUSES.map((item) => (
@@ -1370,7 +1370,7 @@ export default function SalesOrders() {
                   );
                   setPage(1);
                 }}
-                className="h-11 min-w-[140px] rounded-xl border border-white/[0.07] bg-[#111827] px-3 text-sm text-slate-300 outline-none focus:border-white/[0.16]"
+                className="h-11 min-w-[140px] rounded-xl border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none focus:border-brand-500 placeholder:text-slate-500 transition hover:border-slate-400 focus:ring-4 focus:ring-brand-500/15 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500"
               >
                 <option value="">
                   All Payments
@@ -1396,8 +1396,8 @@ export default function SalesOrders() {
                 }
                 className={`inline-flex h-11 items-center gap-2 rounded-xl border px-3.5 text-sm font-medium transition ${
                   showFilters
-                    ? "border-white/[0.15] bg-white/[0.08] text-white"
-                    : "border-white/[0.07] bg-white/[0.025] text-slate-400 hover:bg-white/[0.05] hover:text-white"
+                    ? "border-slate-300 bg-slate-100 text-slate-900"
+                    : "border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                 }`}
               >
                 <Filter className="h-4 w-4" />
@@ -1406,7 +1406,7 @@ export default function SalesOrders() {
 
               <button
                 onClick={clearFilters}
-                className="inline-flex h-11 items-center gap-2 rounded-xl border border-white/[0.07] bg-white/[0.025] px-3.5 text-sm font-medium text-slate-500 transition hover:text-white"
+                className="inline-flex h-11 items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3.5 text-sm font-medium text-slate-600 transition hover:text-slate-900"
               >
                 Clear
               </button>
@@ -1416,7 +1416,7 @@ export default function SalesOrders() {
           {/* ADVANCED FILTERS */}
 
           {showFilters && (
-            <div className="mt-3 border-t border-white/[0.06] pt-4">
+            <div className="mt-3 border-t border-slate-200 pt-4">
               <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
                 <FilterSelect
                   label="Currency"
@@ -1525,7 +1525,7 @@ export default function SalesOrders() {
                       );
                       setPage(1);
                     }}
-                    className="h-10 w-full rounded-xl border border-white/[0.07] bg-[#111827] px-3 text-xs text-slate-300 outline-none"
+                    className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3 text-xs text-slate-700 outline-none placeholder:text-slate-500 transition hover:border-slate-400 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500"
                   >
                     <option value="createdAt">
                       Created
@@ -1556,7 +1556,7 @@ export default function SalesOrders() {
                             : "asc"
                       )
                     }
-                    className="flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-white/[0.07] bg-[#111827] text-xs font-medium text-slate-300 hover:bg-white/[0.05]"
+                    className="flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white text-xs font-medium text-slate-700 hover:bg-slate-100"
                   >
                     {sortOrder === "asc" ? (
                       <>
@@ -1580,11 +1580,11 @@ export default function SalesOrders() {
             TABLE
         ================================================= */}
 
-        <div className="mt-5 overflow-hidden rounded-2xl border border-white/[0.07] bg-[#0d1421]/80 shadow-[0_20px_70px_rgba(0,0,0,0.18)]">
+        <div className="mt-5 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[var(--shadow-card)]">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[1100px]">
               <thead>
-                <tr className="border-b border-white/[0.06] bg-white/[0.018]">
+                <tr className="border-b border-slate-200 bg-slate-50">
                   <th className="px-5 py-4 text-left text-[10px] font-bold uppercase tracking-[0.14em] text-slate-600">
                     Sales Order
                   </th>
@@ -1624,15 +1624,15 @@ export default function SalesOrders() {
                       colSpan={7}
                       className="px-5 py-20 text-center"
                     >
-                      <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-white/[0.07] bg-white/[0.025]">
-                        <ShoppingCart className="h-6 w-6 text-slate-600" />
+                      <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50">
+                        <ShoppingCart className="h-6 w-6 text-slate-500" />
                       </div>
 
-                      <p className="mt-4 text-sm font-semibold text-slate-300">
+                      <p className="mt-4 text-sm font-semibold text-slate-700">
                         No sales orders found
                       </p>
 
-                      <p className="mt-1 text-xs text-slate-600">
+                      <p className="mt-1 text-xs text-slate-500">
                         Create a new sales order or change your filters.
                       </p>
 
@@ -1693,14 +1693,14 @@ export default function SalesOrders() {
 
           {/* PAGINATION */}
 
-          <div className="flex flex-col gap-3 border-t border-white/[0.06] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-xs text-slate-600">
+          <div className="flex flex-col gap-3 border-t border-slate-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-xs text-slate-500">
               Showing{" "}
-              <span className="font-semibold text-slate-400">
+              <span className="font-semibold text-slate-600">
                 {orders.length}
               </span>{" "}
               of{" "}
-              <span className="font-semibold text-slate-400">
+              <span className="font-semibold text-slate-600">
                 {totalItems}
               </span>{" "}
               orders
@@ -1718,12 +1718,12 @@ export default function SalesOrders() {
                       )
                   )
                 }
-                className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/[0.07] bg-white/[0.025] text-slate-500 transition hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+                className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-slate-600 transition hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-30"
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
 
-              <span className="rounded-lg border border-white/[0.07] bg-white/[0.04] px-3 py-2 text-xs font-semibold text-white">
+              <span className="rounded-lg border border-slate-200 bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-900">
                 {page} / {Math.max(totalPages, 1)}
               </span>
 
@@ -1738,7 +1738,7 @@ export default function SalesOrders() {
                       )
                   )
                 }
-                className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/[0.07] bg-white/[0.025] text-slate-500 transition hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+                className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-slate-600 transition hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-30"
               >
                 <ChevronRight className="h-4 w-4" />
               </button>
@@ -2018,7 +2018,7 @@ export default function SalesOrders() {
                 <button
                   type="button"
                   onClick={addItem}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.035] px-3 py-2 text-xs font-semibold text-slate-300 hover:bg-white/[0.07] hover:text-white"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 hover:text-slate-900"
                 >
                   <Plus className="h-3.5 w-3.5" />
                   Add Item
@@ -2030,7 +2030,7 @@ export default function SalesOrders() {
                   (item, index) => (
                     <div
                       key={index}
-                      className="rounded-2xl border border-white/[0.07] bg-white/[0.018] p-4"
+                      className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
                     >
                       <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-6">
                         <FormField
@@ -2190,11 +2190,11 @@ export default function SalesOrders() {
                         </FormField>
                       </div>
 
-                      <div className="mt-4 flex items-center justify-between border-t border-white/[0.06] pt-3">
-                        <div className="flex flex-wrap gap-4 text-xs text-slate-500">
+                      <div className="mt-4 flex items-center justify-between border-t border-slate-200 pt-3">
+                        <div className="flex flex-wrap gap-4 text-xs text-slate-600">
                           <span>
                             Subtotal{" "}
-                            <b className="text-slate-300">
+                            <b className="text-slate-700">
                               {money(
                                 calculatedTotals
                                   .items[
@@ -2208,7 +2208,7 @@ export default function SalesOrders() {
 
                           <span>
                             Discount{" "}
-                            <b className="text-slate-300">
+                            <b className="text-slate-700">
                               {money(
                                 calculatedTotals
                                   .items[
@@ -2222,7 +2222,7 @@ export default function SalesOrders() {
 
                           <span>
                             Tax{" "}
-                            <b className="text-slate-300">
+                            <b className="text-slate-700">
                               {money(
                                 calculatedTotals
                                   .items[
@@ -2236,7 +2236,7 @@ export default function SalesOrders() {
 
                           <span>
                             Total{" "}
-                            <b className="text-white">
+                            <b className="text-slate-900">
                               {money(
                                 calculatedTotals
                                   .items[
@@ -2258,7 +2258,7 @@ export default function SalesOrders() {
                                 index
                               )
                             }
-                            className="inline-flex items-center gap-1.5 text-xs font-medium text-red-400 hover:text-red-300"
+                            className="inline-flex items-center gap-1.5 text-xs font-medium text-red-700 hover:text-red-700"
                           >
                             <Trash2 className="h-3.5 w-3.5" />
                             Remove
@@ -2274,7 +2274,7 @@ export default function SalesOrders() {
             {/* TOTALS */}
 
             <div className="flex justify-end">
-              <div className="w-full max-w-md rounded-2xl border border-white/[0.07] bg-white/[0.025] p-5">
+              <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-slate-50 p-5">
                 <div className="space-y-3 text-sm">
                   <TotalLine
                     label="Subtotal"
@@ -2300,13 +2300,13 @@ export default function SalesOrders() {
                     )}
                   />
 
-                  <div className="border-t border-white/[0.07] pt-3">
+                  <div className="border-t border-slate-200 pt-3">
                     <div className="flex items-center justify-between">
-                      <span className="font-semibold text-slate-300">
+                      <span className="font-semibold text-slate-700">
                         Grand Total
                       </span>
 
-                      <span className="text-xl font-bold text-white">
+                      <span className="text-xl font-bold text-slate-900">
                         {money(
                           calculatedTotals.grandTotal,
                           form.currency
@@ -2587,7 +2587,7 @@ export default function SalesOrders() {
                   <button
                     type="button"
                     onClick={addTag}
-                    className="rounded-xl border border-white/[0.08] bg-white/[0.04] px-4 text-xs font-semibold text-slate-300 hover:bg-white/[0.08] hover:text-white"
+                    className="rounded-xl border border-slate-200 bg-slate-100 px-4 text-xs font-semibold text-slate-700 hover:bg-slate-100 hover:text-slate-900"
                   >
                     Add
                   </button>
@@ -2598,7 +2598,7 @@ export default function SalesOrders() {
                     {form.tags.map((tag) => (
                       <span
                         key={tag}
-                        className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.07] bg-white/[0.035] px-2.5 py-1 text-xs text-slate-300"
+                        className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs text-slate-700"
                       >
                         {tag}
 
@@ -2607,7 +2607,7 @@ export default function SalesOrders() {
                           onClick={() =>
                             removeTag(tag)
                           }
-                          className="text-slate-600 hover:text-red-400"
+                          className="text-slate-500 hover:text-red-700"
                         >
                           <X className="h-3 w-3" />
                         </button>
@@ -2620,7 +2620,7 @@ export default function SalesOrders() {
 
             {/* FOOTER */}
 
-            <div className="flex flex-col-reverse gap-2 border-t border-white/[0.06] pt-5 sm:flex-row sm:justify-end">
+            <div className="flex flex-col-reverse gap-2 border-t border-slate-200 pt-5 sm:flex-row sm:justify-end">
               <button
                 type="button"
                 disabled={saving}
@@ -2628,7 +2628,7 @@ export default function SalesOrders() {
                   setShowForm(false);
                   resetForm();
                 }}
-                className="h-11 rounded-xl border border-white/[0.08] bg-white/[0.025] px-5 text-sm font-semibold text-slate-400 hover:text-white"
+                className="h-11 rounded-xl border border-slate-200 bg-slate-50 px-5 text-sm font-semibold text-slate-600 hover:text-slate-900"
               >
                 Cancel
               </button>
@@ -2636,7 +2636,7 @@ export default function SalesOrders() {
               <button
                 type="submit"
                 disabled={saving}
-                className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-white px-6 text-sm font-bold text-slate-950 shadow-lg shadow-white/10 hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-50"
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-brand-600 px-6 text-sm font-bold text-white shadow-sm hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {saving ? (
                   <>
@@ -2768,12 +2768,12 @@ export default function SalesOrders() {
                 />
               </FormField>
 
-              <div className="flex justify-end gap-2 border-t border-white/[0.06] pt-5">
+              <div className="flex justify-end gap-2 border-t border-slate-200 pt-5">
                 <button
                   onClick={() =>
                     setShowPayment(false)
                   }
-                  className="h-10 rounded-xl border border-white/[0.08] px-4 text-sm font-semibold text-slate-400 hover:text-white"
+                  className="h-10 rounded-xl border border-slate-200 px-4 text-sm font-semibold text-slate-600 hover:text-slate-900"
                 >
                   Cancel
                 </button>
@@ -2817,13 +2817,13 @@ export default function SalesOrders() {
             }
           >
             <div className="space-y-5">
-              <div className="rounded-xl border border-red-500/15 bg-red-500/[0.05] p-4">
+              <div className="rounded-xl border border-red-200 bg-red-500/[0.05] p-4">
                 <div className="flex gap-3">
-                  <AlertCircle className="h-5 w-5 shrink-0 text-red-400" />
+                  <AlertCircle className="h-5 w-5 shrink-0 text-red-700" />
 
-                  <p className="text-xs leading-5 text-slate-400">
+                  <p className="text-xs leading-5 text-slate-600">
                     This action will move the sales order to
-                    <span className="font-semibold text-red-400">
+                    <span className="font-semibold text-red-700">
                       {" "}
                       CANCELLED
                     </span>
@@ -2846,12 +2846,12 @@ export default function SalesOrders() {
                 />
               </FormField>
 
-              <div className="flex justify-end gap-2 border-t border-white/[0.06] pt-5">
+              <div className="flex justify-end gap-2 border-t border-slate-200 pt-5">
                 <button
                   onClick={() =>
                     setShowCancel(false)
                   }
-                  className="h-10 rounded-xl border border-white/[0.08] px-4 text-sm font-semibold text-slate-400 hover:text-white"
+                  className="h-10 rounded-xl border border-slate-200 px-4 text-sm font-semibold text-slate-600 hover:text-slate-900"
                 >
                   Keep Order
                 </button>
@@ -2882,23 +2882,23 @@ export default function SalesOrders() {
             }
           >
             <div className="space-y-5">
-              <div className="rounded-xl border border-red-500/15 bg-red-500/[0.05] p-4">
+              <div className="rounded-xl border border-red-200 bg-red-500/[0.05] p-4">
                 <div className="flex gap-3">
-                  <Trash2 className="h-5 w-5 shrink-0 text-red-400" />
+                  <Trash2 className="h-5 w-5 shrink-0 text-red-700" />
 
-                  <p className="text-xs leading-5 text-slate-400">
+                  <p className="text-xs leading-5 text-slate-600">
                     This will permanently delete this sales order.
                     This action cannot be undone.
                   </p>
                 </div>
               </div>
 
-              <div className="flex justify-end gap-2 border-t border-white/[0.06] pt-5">
+              <div className="flex justify-end gap-2 border-t border-slate-200 pt-5">
                 <button
                   onClick={() =>
                     setShowDelete(false)
                   }
-                  className="h-10 rounded-xl border border-white/[0.08] px-4 text-sm font-semibold text-slate-400 hover:text-white"
+                  className="h-10 rounded-xl border border-slate-200 px-4 text-sm font-semibold text-slate-600 hover:text-slate-900"
                 >
                   Cancel
                 </button>
@@ -2963,17 +2963,17 @@ function SalesOrderRow({
     `${prefix}-${id}`;
 
   return (
-    <tr className="group border-b border-white/[0.045] transition hover:bg-white/[0.018]">
+    <tr className="group border-b border-slate-200 transition hover:bg-slate-50">
       <td className="px-5 py-4">
         <button
           onClick={onView}
           className="text-left"
         >
-          <p className="text-sm font-semibold text-white transition group-hover:text-slate-200">
+          <p className="text-sm font-semibold text-slate-900 transition group-hover:text-slate-200">
             {order.salesOrderNumber}
           </p>
 
-          <p className="mt-1 text-[11px] text-slate-600">
+          <p className="mt-1 text-[11px] text-slate-500">
             {order.items?.length || 0} item
             {order.items?.length === 1
               ? ""
@@ -2983,31 +2983,31 @@ function SalesOrderRow({
       </td>
 
       <td className="px-5 py-4">
-        <p className="text-sm font-medium text-slate-300">
+        <p className="text-sm font-medium text-slate-700">
           {companyName}
         </p>
 
-        <p className="mt-1 text-xs text-slate-600">
+        <p className="mt-1 text-xs text-slate-500">
           {contactName}
         </p>
       </td>
 
       <td className="px-5 py-4">
-        <div className="flex items-center gap-2 text-xs text-slate-400">
-          <CalendarDays className="h-3.5 w-3.5 text-slate-600" />
+        <div className="flex items-center gap-2 text-xs text-slate-600">
+          <CalendarDays className="h-3.5 w-3.5 text-slate-500" />
           {dateFormat(order.orderDate)}
         </div>
       </td>
 
       <td className="px-5 py-4">
-        <p className="text-sm font-bold text-white">
+        <p className="text-sm font-bold text-slate-900">
           {money(
             order.grandTotal,
             order.currency
           )}
         </p>
 
-        <p className="mt-1 text-[11px] text-slate-600">
+        <p className="mt-1 text-[11px] text-slate-500">
           Due{" "}
           {money(
             order.balanceDue,
@@ -3140,7 +3140,7 @@ function OrderDetailsModal({
       <div className="space-y-6">
         {/* HEADER */}
 
-        <div className="flex flex-col gap-4 rounded-2xl border border-white/[0.07] bg-white/[0.025] p-5 md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-5 md:flex-row md:items-center md:justify-between">
           <div>
             <div className="flex flex-wrap items-center gap-2">
               <StatusBadge
@@ -3154,14 +3154,14 @@ function OrderDetailsModal({
               />
             </div>
 
-            <p className="mt-3 text-2xl font-bold text-white">
+            <p className="mt-3 text-2xl font-bold text-slate-900">
               {money(
                 order.grandTotal,
                 currency
               )}
             </p>
 
-            <p className="mt-1 text-xs text-slate-600">
+            <p className="mt-1 text-xs text-slate-500">
               Created{" "}
               {dateFormat(
                 order.createdAt
@@ -3176,7 +3176,7 @@ function OrderDetailsModal({
                 "CANCELLED" && (
                 <button
                   onClick={onEdit}
-                  className="inline-flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.035] px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-white/[0.07] hover:text-white"
+                  className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 hover:text-slate-900"
                 >
                   <Edit3 className="h-3.5 w-3.5" />
                   Edit
@@ -3222,7 +3222,7 @@ function OrderDetailsModal({
                 "CANCELLED" && (
                 <button
                   onClick={onPayment}
-                  className="inline-flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.035] px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-white/[0.07] hover:text-white"
+                  className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 hover:text-slate-900"
                 >
                   <CreditCard className="h-3.5 w-3.5" />
                   Payment
@@ -3312,11 +3312,11 @@ function OrderDetailsModal({
             title="Items"
           />
 
-          <div className="overflow-hidden rounded-xl border border-white/[0.07]">
+          <div className="overflow-hidden rounded-xl border border-slate-200">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[700px]">
                 <thead>
-                  <tr className="border-b border-white/[0.06] bg-white/[0.025]">
+                  <tr className="border-b border-slate-200 bg-slate-50">
                     <th className="px-4 py-3 text-left text-[10px] uppercase tracking-wider text-slate-600">
                       Product
                     </th>
@@ -3346,10 +3346,10 @@ function OrderDetailsModal({
                           item._id ||
                           index
                         }
-                        className="border-b border-white/[0.045]"
+                        className="border-b border-slate-200"
                       >
                         <td className="px-4 py-3">
-                          <p className="text-sm font-medium text-slate-300">
+                          <p className="text-sm font-medium text-slate-700">
                             {getName(
                               item.product
                             ) ||
@@ -3357,37 +3357,37 @@ function OrderDetailsModal({
                               "Item"}
                           </p>
 
-                          <p className="mt-0.5 text-xs text-slate-600">
+                          <p className="mt-0.5 text-xs text-slate-500">
                             {
                               item.description
                             }
                           </p>
                         </td>
 
-                        <td className="px-4 py-3 text-right text-sm text-slate-400">
+                        <td className="px-4 py-3 text-right text-sm text-slate-600">
                           {item.quantity}
                         </td>
 
-                        <td className="px-4 py-3 text-right text-sm text-slate-400">
+                        <td className="px-4 py-3 text-right text-sm text-slate-600">
                           {money(
                             item.unitPrice,
                             currency
                           )}
                         </td>
 
-                        <td className="px-4 py-3 text-right text-sm text-slate-500">
+                        <td className="px-4 py-3 text-right text-sm text-slate-600">
                           {item.discountRate ||
                             0}
                           %
                         </td>
 
-                        <td className="px-4 py-3 text-right text-sm text-slate-500">
+                        <td className="px-4 py-3 text-right text-sm text-slate-600">
                           {item.taxRate ||
                             0}
                           %
                         </td>
 
-                        <td className="px-4 py-3 text-right text-sm font-semibold text-white">
+                        <td className="px-4 py-3 text-right text-sm font-semibold text-slate-900">
                           {money(
                             item.lineTotal,
                             currency
@@ -3405,7 +3405,7 @@ function OrderDetailsModal({
         {/* TOTAL */}
 
         <div className="flex justify-end">
-          <div className="w-full max-w-sm rounded-2xl border border-white/[0.07] bg-white/[0.025] p-5">
+          <div className="w-full max-w-sm rounded-2xl border border-slate-200 bg-slate-50 p-5">
             <TotalLine
               label="Subtotal"
               value={money(
@@ -3430,7 +3430,7 @@ function OrderDetailsModal({
               )}
             />
 
-            <div className="my-3 border-t border-white/[0.07]" />
+            <div className="my-3 border-t border-slate-200" />
 
             <TotalLine
               label="Grand Total"
@@ -3518,20 +3518,20 @@ function Modal({
   return (
     <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/70 p-4 backdrop-blur-md">
       <div
-        className={`flex max-h-[94vh] w-full flex-col overflow-hidden rounded-3xl border border-white/[0.08] bg-[#0b111d] shadow-[0_30px_120px_rgba(0,0,0,0.55)] ${
+        className={`flex max-h-[94vh] w-full flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_30px_120px_rgba(0,0,0,0.55)] ${
           wide
             ? "max-w-6xl"
             : "max-w-lg"
         }`}
       >
-        <div className="flex items-start justify-between border-b border-white/[0.06] px-6 py-5">
+        <div className="flex items-start justify-between border-b border-slate-200 px-6 py-5">
           <div>
-            <h2 className="text-lg font-bold text-white">
+            <h2 className="text-lg font-bold text-slate-900">
               {title}
             </h2>
 
             {subtitle && (
-              <p className="mt-1 text-xs text-slate-600">
+              <p className="mt-1 text-xs text-slate-500">
                 {subtitle}
               </p>
             )}
@@ -3539,7 +3539,7 @@ function Modal({
 
           <button
             onClick={onClose}
-            className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/[0.07] bg-white/[0.025] text-slate-500 hover:text-white"
+            className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-600 hover:text-slate-900"
           >
             <X className="h-4 w-4" />
           </button>
@@ -3564,7 +3564,7 @@ function FormField({
       <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-slate-600">
         {label}
         {required && (
-          <span className="ml-1 text-red-400">
+          <span className="ml-1 text-red-700">
             *
           </span>
         )}
@@ -3581,11 +3581,11 @@ function SectionTitle({
 }) {
   return (
     <div className="mb-4 flex items-center gap-2">
-      <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/[0.07] bg-white/[0.035]">
-        <Icon className="h-4 w-4 text-slate-400" />
+      <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-slate-50">
+        <Icon className="h-4 w-4 text-slate-600" />
       </div>
 
-      <h3 className="text-sm font-bold text-white">
+      <h3 className="text-sm font-bold text-slate-900">
         {title}
       </h3>
     </div>
@@ -3602,8 +3602,8 @@ function TotalLine({
       <span
         className={
           strong
-            ? "font-semibold text-slate-300"
-            : "text-xs text-slate-500"
+            ? "font-semibold text-slate-700"
+            : "text-xs text-slate-600"
         }
       >
         {label}
@@ -3612,8 +3612,8 @@ function TotalLine({
       <span
         className={
           strong
-            ? "font-bold text-white"
-            : "text-sm text-slate-300"
+            ? "font-bold text-slate-900"
+            : "text-sm text-slate-700"
         }
       >
         {value}
@@ -3628,17 +3628,17 @@ function InfoCard({
   subtitle,
 }) {
   return (
-    <div className="rounded-2xl border border-white/[0.07] bg-white/[0.025] p-4">
-      <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-slate-600">
+    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+      <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-slate-500">
         {title}
       </p>
 
-      <p className="mt-2 whitespace-pre-wrap text-sm font-semibold leading-6 text-slate-300">
+      <p className="mt-2 whitespace-pre-wrap text-sm font-semibold leading-6 text-slate-700">
         {value}
       </p>
 
       {subtitle && (
-        <p className="mt-1 text-xs text-slate-600">
+        <p className="mt-1 text-xs text-slate-500">
           {subtitle}
         </p>
       )}
@@ -3651,8 +3651,8 @@ function MiniMetric({
   value,
 }) {
   return (
-    <div className="rounded-xl border border-white/[0.07] bg-white/[0.025] p-3">
-      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-600">
+    <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
         {label}
       </p>
 
@@ -3677,8 +3677,8 @@ function ActionButton({
       disabled={loading}
       className={`flex h-8 w-8 items-center justify-center rounded-lg border transition disabled:opacity-40 ${
         danger
-          ? "border-red-500/10 bg-red-500/[0.04] text-red-400 hover:bg-red-500/10"
-          : "border-white/[0.07] bg-white/[0.025] text-slate-500 hover:bg-white/[0.07] hover:text-white"
+          ? "border-red-200 bg-red-500/[0.04] text-red-700 hover:bg-red-50"
+          : "border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
       }`}
     >
       {loading ? (
@@ -3710,7 +3710,7 @@ function FilterInput({
           onChange(event.target.value)
         }
         placeholder={placeholder}
-        className="h-10 w-full rounded-xl border border-white/[0.07] bg-[#111827] px-3 text-xs text-slate-300 outline-none placeholder:text-slate-700 focus:border-white/[0.15]"
+        className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3 text-xs text-slate-700 outline-none placeholder:text-slate-500 focus:border-brand-500 transition hover:border-slate-400 focus:ring-4 focus:ring-brand-500/15 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500"
       />
     </div>
   );
@@ -3734,7 +3734,7 @@ function FilterSelect({
         onChange={(event) =>
           onChange(event.target.value)
         }
-        className="h-10 w-full rounded-xl border border-white/[0.07] bg-[#111827] px-3 text-xs text-slate-300 outline-none"
+        className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3 text-xs text-slate-700 outline-none placeholder:text-slate-500 transition hover:border-slate-400 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500"
       >
         <option value="">
           All
@@ -3772,7 +3772,7 @@ function TableLoading() {
         (_, index) => (
           <tr
             key={index}
-            className="border-b border-white/[0.045]"
+            className="border-b border-slate-200"
           >
             {Array.from({
               length: 7,
@@ -3782,7 +3782,7 @@ function TableLoading() {
                   key={cellIndex}
                   className="px-5 py-5"
                 >
-                  <div className="h-4 animate-pulse rounded bg-white/[0.045]" />
+                  <div className="h-4 animate-pulse rounded bg-slate-100" />
                 </td>
               )
             )}

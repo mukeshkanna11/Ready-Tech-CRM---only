@@ -463,7 +463,7 @@ function StatCard({
           </h3>
 
           {subtitle && (
-            <p className="mt-1 text-xs text-slate-400">
+            <p className="mt-1 text-xs text-slate-500">
               {subtitle}
             </p>
           )}
@@ -493,7 +493,7 @@ function Modal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-md">
       <div
-        className={`max-h-[94vh] w-full overflow-hidden rounded-3xl border border-white/30 bg-white shadow-2xl ${
+        className={`max-h-[94vh] w-full overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[var(--shadow-overlay)] ${
           wide ? "max-w-7xl" : "max-w-3xl"
         }`}
       >
@@ -513,7 +513,7 @@ function Modal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-xl p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+            className="rounded-xl p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
           >
             <X size={20} />
           </button>
@@ -550,7 +550,7 @@ function Field({ label, required, children }) {
 }
 
 const inputClass =
-  "w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:ring-4 focus:ring-slate-100";
+  "w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-500 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15 hover:border-slate-400 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500";
 
 /* =========================================================
    FORM SECTION
@@ -835,7 +835,7 @@ function CompanyForm({
               <div className="relative">
                 <Globe2
                   size={17}
-                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500"
                 />
 
                 <input
@@ -1184,7 +1184,7 @@ function CompanyForm({
             <div className="relative">
               <Tag
                 size={16}
-                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500"
               />
 
               <input
@@ -1243,7 +1243,7 @@ function InfoCard({
         </div>
 
         <div className="min-w-0">
-          <p className="text-xs font-medium text-slate-400">
+          <p className="text-xs font-medium text-slate-500">
             {label}
           </p>
 
@@ -1263,7 +1263,7 @@ function InfoCard({
 function Detail({ label, value }) {
   return (
     <div>
-      <p className="text-xs font-medium text-slate-400">
+      <p className="text-xs font-medium text-slate-500">
         {label}
       </p>
 
@@ -1313,7 +1313,7 @@ function CompanyDetails({
                   {company.name}
                 </h3>
 
-                <p className="mt-1 text-sm text-slate-400">
+                <p className="mt-1 text-sm text-slate-500">
                   {company.legalName ||
                     "Legal name not available"}
                 </p>
@@ -1347,7 +1347,7 @@ function CompanyDetails({
             </div>
 
             <div className="text-left md:text-right">
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-slate-500">
                 Annual Revenue
               </p>
 
@@ -2228,7 +2228,7 @@ export default function Companies() {
   ===================================================== */
 
   return (
-    <div className="min-h-screen bg-[#f6f8fb] p-4 md:p-6 lg:p-8">
+    <div className="min-h-screen bg-surface p-4 text-slate-900 sm:p-6 lg:p-8">
       <div className="mx-auto max-w-[1700px] space-y-6">
         {/* =================================================
             HEADER
@@ -2251,7 +2251,7 @@ export default function Companies() {
                 Companies
               </h1>
 
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
                 Manage organizations,
                 customers, prospects,
                 business information and
@@ -2440,7 +2440,7 @@ export default function Companies() {
             <div className="relative flex-1">
               <Search
                 size={18}
-                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500"
               />
 
               <input
@@ -2452,7 +2452,7 @@ export default function Companies() {
                   setPage(1);
                 }}
                 placeholder="Search companies by name, email, phone, GSTIN or industry..."
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-4 text-sm outline-none transition focus:border-slate-300 focus:bg-white focus:ring-4 focus:ring-slate-100"
+                className="w-full rounded-xl border border-slate-300 bg-slate-50 py-3 pl-10 pr-4 text-sm outline-none transition focus:border-brand-500 focus:bg-white focus:ring-4 focus:ring-brand-500/15 text-slate-900 placeholder:text-slate-500 hover:border-slate-400 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500"
               />
             </div>
 
@@ -2465,7 +2465,7 @@ export default function Companies() {
                   );
                   setPage(1);
                 }}
-                className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium outline-none focus:ring-4 focus:ring-slate-100"
+                className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium outline-none focus:ring-4 focus:ring-brand-500/15 text-slate-900 placeholder:text-slate-500 transition hover:border-slate-400 focus:border-brand-500 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500"
               >
                 <option value="ALL">
                   All Status
@@ -2493,7 +2493,7 @@ export default function Companies() {
                   );
                   setPage(1);
                 }}
-                className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium outline-none focus:ring-4 focus:ring-slate-100"
+                className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium outline-none focus:ring-4 focus:ring-brand-500/15 text-slate-900 placeholder:text-slate-500 transition hover:border-slate-400 focus:border-brand-500 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500"
               >
                 <option value="ALL">
                   All Types
@@ -2521,7 +2521,7 @@ export default function Companies() {
                   );
                   setPage(1);
                 }}
-                className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium outline-none focus:ring-4 focus:ring-slate-100"
+                className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium outline-none focus:ring-4 focus:ring-brand-500/15 text-slate-900 placeholder:text-slate-500 transition hover:border-slate-400 focus:border-brand-500 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500"
               >
                 <option value="ALL">
                   All Industries
@@ -2563,7 +2563,7 @@ export default function Companies() {
                 Company Directory
               </h2>
 
-              <p className="mt-1 text-xs text-slate-400">
+              <p className="mt-1 text-xs text-slate-500">
                 Showing{" "}
                 {displayedCompanies.length}{" "}
                 of{" "}
@@ -2583,7 +2583,7 @@ export default function Companies() {
                   );
                   setPage(1);
                 }}
-                className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium outline-none"
+                className="rounded-lg border border-slate-300 px-3 py-2 text-xs font-medium outline-none bg-white text-slate-900 placeholder:text-slate-500 transition hover:border-slate-400 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500"
               >
                 <option value={10}>
                   10 / page
@@ -2609,7 +2609,7 @@ export default function Companies() {
               <div className="text-center">
                 <RefreshCw
                   size={32}
-                  className="mx-auto animate-spin text-slate-400"
+                  className="mx-auto animate-spin text-slate-500"
                 />
 
                 <p className="mt-3 text-sm text-slate-500">
@@ -2623,7 +2623,7 @@ export default function Companies() {
               <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100">
                 <Building2
                   size={28}
-                  className="text-slate-400"
+                  className="text-slate-500"
                 />
               </div>
 
@@ -2651,7 +2651,7 @@ export default function Companies() {
             <>
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[1250px] text-left">
-                  <thead className="bg-slate-50 text-xs uppercase tracking-wider text-slate-400">
+                  <thead className="bg-slate-50 text-xs uppercase tracking-wider text-slate-500">
                     <tr>
                       <th className="px-5 py-4 font-bold">
                         Company
@@ -2767,7 +2767,7 @@ export default function Companies() {
                                   }
                                 </p>
 
-                                <p className="mt-1 truncate text-xs text-slate-400">
+                                <p className="mt-1 truncate text-xs text-slate-500">
                                   {company.companyCode ||
                                     "No company code"}
                                 </p>
@@ -2784,7 +2784,7 @@ export default function Companies() {
                                   "—"}
                               </p>
 
-                              <p className="mt-1 text-xs text-slate-400">
+                              <p className="mt-1 text-xs text-slate-500">
                                 {displayEnum(
                                   company.companyType
                                 )}
@@ -2852,7 +2852,7 @@ export default function Companies() {
                               )}
                             </p>
 
-                            <p className="mt-1 text-xs text-slate-400">
+                            <p className="mt-1 text-xs text-slate-500">
                               {formatNumber(
                                 company.employeeCount
                               )}{" "}
@@ -2890,7 +2890,7 @@ export default function Companies() {
                                   )
                                 }
                                 title="View"
-                                className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+                                className="rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
                               >
                                 <Eye
                                   size={16}
@@ -2905,7 +2905,7 @@ export default function Companies() {
                                   )
                                 }
                                 title="Edit"
-                                className="rounded-lg p-2 text-slate-400 transition hover:bg-blue-50 hover:text-blue-600"
+                                className="rounded-lg p-2 text-slate-500 transition hover:bg-blue-50 hover:text-blue-600"
                               >
                                 <Edit3
                                   size={16}
@@ -2920,7 +2920,7 @@ export default function Companies() {
                                   )
                                 }
                                 title="Delete"
-                                className="rounded-lg p-2 text-slate-400 transition hover:bg-rose-50 hover:text-rose-600"
+                                className="rounded-lg p-2 text-slate-500 transition hover:bg-rose-50 hover:text-rose-600"
                               >
                                 <Trash2
                                   size={16}
@@ -2930,7 +2930,7 @@ export default function Companies() {
                               <button
                                 type="button"
                                 title="More"
-                                className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100"
+                                className="rounded-lg p-2 text-slate-500 transition hover:bg-slate-100"
                               >
                                 <MoreHorizontal
                                   size={16}

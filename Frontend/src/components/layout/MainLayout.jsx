@@ -3,14 +3,14 @@ import React, {
   useMemo,
   useState,
 } from "react";
-
+import { ClipboardList } from "lucide-react";
 import {
   NavLink,
   Outlet,
   useLocation,
   useNavigate,
 } from "react-router-dom";
-
+import { Wallet } from "lucide-react";
 import {
   FileText,
   ShoppingCart,
@@ -20,6 +20,7 @@ import {
   Activity,
   Bell,
   Building2,
+  ListTodo,
   ChevronRight,
   CircleHelp,
   Command,
@@ -27,6 +28,7 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
+  Zap,
   Package,
   PanelLeftClose,
   Search,
@@ -35,6 +37,10 @@ import {
   UserRoundSearch,
   X,
 } from "lucide-react";
+
+// ======================================================
+// NAVIGATION
+// ======================================================
 
 // ======================================================
 // NAVIGATION
@@ -66,6 +72,24 @@ const navigation = [
     description: "Customer accounts",
   },
   {
+    name: "Automations",
+    path: "/automations",
+    icon: Zap,
+    description: "Automate CRM workflows",
+  },
+  {
+    name: "Activities",
+    path: "/activities",
+    icon: ClipboardList,
+    description: "Activity CRM workflows",
+  },
+  {
+    name: "Tasks",
+    path: "/tasks",
+    icon: ListTodo,
+    description: "Manage & track tasks",
+  },
+  {
     name: "Products",
     path: "/products",
     icon: Package,
@@ -88,6 +112,18 @@ const navigation = [
     path: "/sales-orders",
     icon: ShoppingCart,
     description: "Manage customer orders",
+  },
+  {
+    name: "Invoices",
+    path: "/invoices",
+    icon: FileText,
+    description: "Manage customer invoices",
+  },
+  {
+    name: "Payments",
+    path: "/payments",
+    icon: Wallet,
+    description: "Manage customer payments",
   },
 ];
 
@@ -740,14 +776,14 @@ export default function MainLayout() {
   // ====================================================
 
   return (
-    <div className="min-h-screen bg-[#070b14] text-white">
+    <div className="min-h-screen bg-surface text-slate-900">
       {/* ==================================================
           DESKTOP SIDEBAR
       ================================================== */}
 
       <aside
         className={[
-          "fixed inset-y-0 left-0 z-50 hidden border-r border-white/[0.06] bg-[#0b101b] transition-all duration-300 lg:block",
+          "shell-dark fixed inset-y-0 left-0 z-50 hidden border-r border-white/[0.06] bg-shell text-white transition-all duration-300 lg:block",
           desktopSidebarCollapsed
             ? "w-[78px]"
             : "w-[270px]",
@@ -775,7 +811,7 @@ export default function MainLayout() {
 
       <aside
         className={[
-          "fixed inset-y-0 left-0 z-[70] w-[280px] border-r border-white/[0.06] bg-[#0b101b] transition-transform duration-300 lg:hidden",
+          "shell-dark fixed inset-y-0 left-0 z-[70] w-[280px] border-r border-white/[0.06] bg-shell text-white transition-transform duration-300 lg:hidden",
           mobileSidebarOpen
             ? "translate-x-0"
             : "-translate-x-full",
@@ -814,7 +850,7 @@ export default function MainLayout() {
             TOP HEADER
         ================================================== */}
 
-        <header className="sticky top-0 z-40 h-[74px] border-b border-white/[0.06] bg-[#070b14]/80 backdrop-blur-2xl">
+        <header className="sticky top-0 z-40 h-[74px] border-b border-slate-200 bg-white/85 backdrop-blur-xl">
           <div className="flex h-full items-center justify-between px-4 sm:px-6 lg:px-8">
             {/* LEFT */}
 
@@ -826,7 +862,7 @@ export default function MainLayout() {
                 onClick={() =>
                   setMobileSidebarOpen(true)
                 }
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/[0.07] bg-white/[0.035] text-slate-400 transition hover:bg-white/[0.07] hover:text-white lg:hidden"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-300 bg-white text-slate-600 shadow-sm transition hover:border-slate-400 hover:bg-slate-50 hover:text-slate-900 lg:hidden"
                 aria-label="Open sidebar"
               >
                 <Menu
@@ -839,17 +875,17 @@ export default function MainLayout() {
 
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <h2 className="truncate text-[15px] font-bold tracking-tight text-white sm:text-base">
+                  <h2 className="truncate text-[15px] font-bold tracking-tight text-slate-900 sm:text-base">
                     {currentPage.name}
                   </h2>
 
-                  <span className="hidden items-center gap-1 rounded-full border border-emerald-500/10 bg-emerald-500/[0.07] px-2 py-0.5 text-[8px] font-bold text-emerald-400 sm:inline-flex">
-                    <span className="h-1 w-1 rounded-full bg-emerald-400" />
+                  <span className="hidden items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[8px] font-bold text-emerald-700 sm:inline-flex">
+                    <span className="h-1 w-1 rounded-full bg-emerald-500" />
                     LIVE
                   </span>
                 </div>
 
-                <div className="mt-0.5 hidden items-center gap-1.5 text-[10px] text-slate-600 sm:flex">
+                <div className="mt-0.5 hidden items-center gap-1.5 text-[10px] font-medium text-slate-500 sm:flex">
                   <span>Workspace</span>
 
                   <ChevronRight
@@ -857,7 +893,7 @@ export default function MainLayout() {
                     strokeWidth={1.7}
                   />
 
-                  <span className="text-slate-500">
+                  <span className="font-semibold text-slate-700">
                     {currentPage.name}
                   </span>
                 </div>
@@ -871,7 +907,7 @@ export default function MainLayout() {
 
               <button
                 type="button"
-                className="hidden h-9 items-center gap-2 rounded-xl border border-white/[0.07] bg-white/[0.025] px-3 text-slate-500 transition hover:border-white/10 hover:bg-white/[0.05] hover:text-slate-300 md:flex"
+                className="hidden h-9 items-center gap-2 rounded-xl border border-slate-300 bg-white px-3 text-slate-600 shadow-sm transition hover:border-slate-400 hover:bg-slate-50 hover:text-slate-900 md:flex"
               >
                 <Search
                   className="h-3.5 w-3.5"
@@ -882,7 +918,7 @@ export default function MainLayout() {
                   Search CRM
                 </span>
 
-                <span className="ml-3 flex items-center gap-1 rounded-md border border-white/[0.07] px-1.5 py-0.5 text-[8px] text-slate-600">
+                <span className="ml-3 flex items-center gap-1 rounded-md border border-slate-300 bg-slate-50 px-1.5 py-0.5 text-[8px] font-semibold text-slate-500">
                   <Command
                     className="h-2.5 w-2.5"
                     strokeWidth={1.8}
@@ -895,7 +931,7 @@ export default function MainLayout() {
 
               <button
                 type="button"
-                className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/[0.07] bg-white/[0.025] text-slate-400 transition hover:bg-white/[0.07] hover:text-white md:hidden"
+                className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-300 bg-white text-slate-600 shadow-sm transition hover:border-slate-400 hover:bg-slate-50 hover:text-slate-900 md:hidden"
                 aria-label="Search"
               >
                 <Search
@@ -908,7 +944,7 @@ export default function MainLayout() {
 
               <button
                 type="button"
-                className="hidden h-9 w-9 items-center justify-center rounded-xl border border-white/[0.07] bg-white/[0.025] text-slate-400 transition hover:bg-white/[0.07] hover:text-white sm:flex"
+                className="hidden h-9 w-9 items-center justify-center rounded-xl border border-slate-300 bg-white text-slate-600 shadow-sm transition hover:border-slate-400 hover:bg-slate-50 hover:text-slate-900 sm:flex"
                 aria-label="Help"
               >
                 <CircleHelp
@@ -921,7 +957,7 @@ export default function MainLayout() {
 
               <button
                 type="button"
-                className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-white/[0.07] bg-white/[0.025] text-slate-400 transition hover:bg-white/[0.07] hover:text-white"
+                className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-slate-300 bg-white text-slate-600 shadow-sm transition hover:border-slate-400 hover:bg-slate-50 hover:text-slate-900"
                 aria-label="Notifications"
               >
                 <Bell
@@ -929,12 +965,12 @@ export default function MainLayout() {
                   strokeWidth={1.8}
                 />
 
-                <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-blue-500 shadow shadow-blue-500/60" />
+                <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-rose-500 ring-2 ring-white" />
               </button>
 
               {/* Divider */}
 
-              <div className="hidden h-7 w-px bg-white/[0.07] sm:block" />
+              <div className="hidden h-7 w-px bg-slate-200 sm:block" />
 
               {/* User */}
 
@@ -943,26 +979,26 @@ export default function MainLayout() {
                 onClick={() =>
                   navigate("/dashboard")
                 }
-                className="flex items-center gap-2 rounded-xl px-1 py-1 transition hover:bg-white/[0.05]"
+                className="flex items-center gap-2 rounded-xl px-1 py-1 transition hover:bg-slate-100"
               >
                 <div className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-violet-600 text-[10px] font-bold text-white shadow-md shadow-blue-500/10">
                   {initials}
 
-                  <span className="absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full border border-[#070b14] bg-emerald-400" />
+                  <span className="absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full border-2 border-white bg-emerald-500" />
                 </div>
 
                 <div className="hidden text-left sm:block">
-                  <p className="max-w-[120px] truncate text-[10px] font-bold text-white">
+                  <p className="max-w-[120px] truncate text-[10px] font-bold text-slate-900">
                     {userName}
                   </p>
 
-                  <p className="text-[8px] text-slate-500">
+                  <p className="text-[8px] font-medium text-slate-500">
                     {userRole}
                   </p>
                 </div>
 
                 <ChevronRight
-                  className="hidden h-3.5 w-3.5 text-slate-600 sm:block"
+                  className="hidden h-3.5 w-3.5 text-slate-400 sm:block"
                   strokeWidth={1.8}
                 />
               </button>
@@ -974,18 +1010,17 @@ export default function MainLayout() {
             PAGE CONTENT
         ================================================== */}
 
+        {/* Pages own their own max-width and padding. */}
         <main className="min-h-[calc(100vh-74px)]">
-          <div className="p-4 sm:p-6 lg:p-8">
-            <Outlet />
-          </div>
+          <Outlet />
         </main>
 
         {/* ==================================================
             FOOTER
         ================================================== */}
 
-        <footer className="border-t border-white/[0.05] px-4 py-5 sm:px-6 lg:px-8">
-          <div className="flex flex-col items-center justify-between gap-2 text-[9px] text-slate-600 sm:flex-row">
+        <footer className="border-t border-slate-200 px-4 py-5 sm:px-6 lg:px-8">
+          <div className="flex flex-col items-center justify-between gap-2 text-[9px] font-medium text-slate-500 sm:flex-row">
             <p>
               © {new Date().getFullYear()}{" "}
               ReadyTech Solutions. All rights reserved.
@@ -994,14 +1029,14 @@ export default function MainLayout() {
             <div className="flex items-center gap-3">
               <span>ReadyTech CRM</span>
 
-              <span className="h-1 w-1 rounded-full bg-slate-700" />
+              <span className="h-1 w-1 rounded-full bg-slate-400" />
 
               <span>v1.0.0</span>
 
-              <span className="h-1 w-1 rounded-full bg-slate-700" />
+              <span className="h-1 w-1 rounded-full bg-slate-400" />
 
               <span className="flex items-center gap-1">
-                <span className="h-1 w-1 rounded-full bg-emerald-400" />
+                <span className="h-1 w-1 rounded-full bg-emerald-500" />
                 Operational
               </span>
             </div>

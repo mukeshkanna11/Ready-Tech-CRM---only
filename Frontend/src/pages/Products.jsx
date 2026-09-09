@@ -688,7 +688,7 @@ function ProductFormModal({
                         }
                       }}
                       placeholder="Type tag and press Enter"
-                      className="flex-1 rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
+                      className="flex-1 rounded-xl border border-slate-300 px-4 py-2.5 text-sm outline-none transition focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15 bg-white text-slate-900 placeholder:text-slate-500 hover:border-slate-400 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500"
                     />
 
                     <button
@@ -713,7 +713,7 @@ function ProductFormModal({
                           <button
                             type="button"
                             onClick={() => removeTag(tag)}
-                            className="ml-1 text-slate-400 hover:text-rose-500"
+                            className="ml-1 text-slate-500 hover:text-rose-500"
                           >
                             ×
                           </button>
@@ -2116,7 +2116,7 @@ const fetchProducts = useCallback(
   ====================================================== */
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-slate-900">
+    <div className="min-h-screen bg-surface text-slate-900">
       {/* ==================================================
           TOP HEADER
       ================================================== */}
@@ -2259,7 +2259,7 @@ const fetchProducts = useCallback(
         <div className="mt-6 rounded-2xl border border-slate-200 bg-white shadow-sm">
           <div className="flex flex-col gap-3 p-4 xl:flex-row xl:items-center">
             <div className="relative flex-1">
-              <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
 
               <input
                 value={searchInput}
@@ -2267,7 +2267,7 @@ const fetchProducts = useCallback(
                   setSearchInput(e.target.value)
                 }
                 placeholder="Search by product name, SKU, barcode, brand..."
-                className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 text-sm outline-none transition focus:border-slate-400 focus:bg-white focus:ring-4 focus:ring-slate-100"
+                className="h-11 w-full rounded-xl border border-slate-300 bg-slate-50 pl-10 pr-4 text-sm outline-none transition focus:border-brand-500 focus:bg-white focus:ring-4 focus:ring-brand-500/15 text-slate-900 placeholder:text-slate-500 hover:border-slate-400 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500"
               />
             </div>
 
@@ -2300,7 +2300,7 @@ const fetchProducts = useCallback(
                   setSortBy(e.target.value);
                   setPage(1);
                 }}
-                className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 outline-none focus:border-slate-400"
+                className="h-11 rounded-xl border border-slate-300 bg-white px-3 text-sm font-medium text-slate-700 outline-none focus:border-brand-500 placeholder:text-slate-500 transition hover:border-slate-400 focus:ring-4 focus:ring-brand-500/15 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500"
               >
                 <option value="createdAt">
                   Recently Added
@@ -2672,7 +2672,7 @@ const fetchProducts = useCallback(
                                         •
                                       </span>
 
-                                      <span className="text-xs capitalize text-slate-400">
+                                      <span className="text-xs capitalize text-slate-500">
                                         {
                                           product.productType
                                         }
@@ -2703,7 +2703,7 @@ const fetchProducts = useCallback(
                                       "SKU copied."
                                     );
                                   }}
-                                  className="text-slate-400 opacity-0 transition group-hover:opacity-100 hover:text-slate-700"
+                                  className="text-slate-500 opacity-0 transition group-hover:opacity-100 hover:text-slate-700"
                                 >
                                   <Clipboard className="h-3.5 w-3.5" />
                                 </button>
@@ -2729,7 +2729,7 @@ const fetchProducts = useCallback(
                               </p>
 
                               {product.subcategory && (
-                                <p className="mt-0.5 text-xs text-slate-400">
+                                <p className="mt-0.5 text-xs text-slate-500">
                                   {
                                     product.subcategory
                                   }
@@ -2748,7 +2748,7 @@ const fetchProducts = useCallback(
                               </p>
 
                               {product.mrp > 0 && (
-                                <p className="mt-0.5 text-xs text-slate-400 line-through">
+                                <p className="mt-0.5 text-xs text-slate-500 line-through">
                                   {formatCurrency(
                                     product.mrp,
                                     product.currency
@@ -2782,7 +2782,7 @@ const fetchProducts = useCallback(
                                       : id
                                   )
                                 }
-                                className="rounded-xl p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+                                className="rounded-xl p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
                               >
                                 <MoreHorizontal className="h-5 w-5" />
                               </button>
@@ -2933,7 +2933,7 @@ const fetchProducts = useCallback(
                       );
                       setPage(1);
                     }}
-                    className="rounded-lg border border-slate-200 px-2 py-1.5 text-xs font-medium text-slate-600 outline-none"
+                    className="rounded-lg border border-slate-300 px-2 py-1.5 text-xs font-medium text-slate-600 outline-none bg-white placeholder:text-slate-500 transition hover:border-slate-400 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500"
                   >
                     <option value={10}>
                       10 / page
@@ -3102,7 +3102,7 @@ const fetchProducts = useCallback(
                       ? "8901234567890"
                       : "WM-001"
                   }
-                  className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 pr-12 font-mono text-sm outline-none focus:border-slate-400 focus:bg-white focus:ring-4 focus:ring-slate-100"
+                  className="h-12 w-full rounded-xl border border-slate-300 bg-slate-50 px-4 pr-12 font-mono text-sm outline-none focus:border-brand-500 focus:bg-white focus:ring-4 focus:ring-brand-500/15 text-slate-900 placeholder:text-slate-500 transition hover:border-slate-400 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500"
                 />
 
                 <button
@@ -3110,13 +3110,13 @@ const fetchProducts = useCallback(
                   onClick={() =>
                     setLookupValue("")
                   }
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700"
                 >
                   <X className="h-4 w-4" />
                 </button>
               </div>
 
-              <p className="mt-2 text-xs text-slate-400">
+              <p className="mt-2 text-xs text-slate-500">
                 Barcode scanner input can be focused here and scanned directly.
               </p>
 
@@ -3165,7 +3165,7 @@ const fetchProducts = useCallback(
 
             <button
               onClick={() => setToast(null)}
-              className="text-slate-400 hover:text-slate-700"
+              className="text-slate-500 hover:text-slate-700"
             >
               <X className="h-4 w-4" />
             </button>
@@ -3224,7 +3224,7 @@ function Input({
         value={value ?? ""}
         onChange={onChange}
         placeholder={placeholder}
-        className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
+        className="h-11 w-full rounded-xl border border-slate-300 bg-white px-3.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-500 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15 hover:border-slate-400 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500"
       />
     </label>
   );
@@ -3253,7 +3253,7 @@ function NumberInput({
         step="0.01"
         value={value ?? 0}
         onChange={onChange}
-        className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3.5 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
+        className="h-11 w-full rounded-xl border border-slate-300 bg-white px-3.5 text-sm text-slate-900 outline-none transition focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15 placeholder:text-slate-500 hover:border-slate-400 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500"
       />
     </label>
   );
@@ -3277,7 +3277,7 @@ function Textarea({
         value={value ?? ""}
         onChange={onChange}
         placeholder={placeholder}
-        className="w-full resize-none rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
+        className="w-full resize-none rounded-xl border border-slate-300 bg-white px-3.5 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-500 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15 hover:border-slate-400 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500"
       />
     </label>
   );
@@ -3298,7 +3298,7 @@ function Select({
       <select
         value={value ?? ""}
         onChange={onChange}
-        className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3.5 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
+        className="h-11 w-full rounded-xl border border-slate-300 bg-white px-3.5 text-sm text-slate-900 outline-none transition focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15 placeholder:text-slate-500 hover:border-slate-400 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500"
       >
         {options.map((option) => {
           const normalized =
@@ -3367,7 +3367,7 @@ function FilterSelect({
 }) {
   return (
     <label>
-      <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-400">
+      <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-600">
         {label}
       </span>
 
@@ -3376,7 +3376,7 @@ function FilterSelect({
         onChange={(e) =>
           onChange(e.target.value)
         }
-        className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 outline-none focus:border-slate-400"
+        className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm font-medium text-slate-700 outline-none focus:border-brand-500 placeholder:text-slate-500 transition hover:border-slate-400 focus:ring-4 focus:ring-brand-500/15 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500"
       >
         {options.map((option) => (
           <option
@@ -3409,7 +3409,7 @@ function StatCard({
             {formatNumber(value)}
           </p>
 
-          <p className="mt-1 text-xs text-slate-400">
+          <p className="mt-1 text-xs text-slate-500">
             {description}
           </p>
         </div>
@@ -3429,7 +3429,7 @@ function InfoCard({
 }) {
   return (
     <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
+      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
         {icon}
         {label}
       </div>
@@ -3464,7 +3464,7 @@ function DetailRow({
 }) {
   return (
     <div className="flex items-center justify-between gap-4 border-b border-slate-100 pb-3 last:border-0 last:pb-0">
-      <span className="text-xs font-medium text-slate-400">
+      <span className="text-xs font-medium text-slate-500">
         {label}
       </span>
 
@@ -3535,7 +3535,7 @@ function LoadingState() {
         Loading products...
       </p>
 
-      <p className="mt-1 text-xs text-slate-400">
+      <p className="mt-1 text-xs text-slate-500">
         Fetching your product catalog
       </p>
     </div>
@@ -3550,7 +3550,7 @@ function EmptyState({
   return (
     <div className="flex min-h-[420px] flex-col items-center justify-center px-6 text-center">
       <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-slate-100">
-        <Package className="h-7 w-7 text-slate-400" />
+        <Package className="h-7 w-7 text-slate-500" />
       </div>
 
       <h3 className="mt-5 text-lg font-bold text-slate-900">

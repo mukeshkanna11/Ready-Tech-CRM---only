@@ -1,21 +1,24 @@
-// src/controllers/activity.controller.js
-
 "use strict";
 
+const mongoose = require("mongoose");
+
 const Activity = require("../models/Activity");
+
 const asyncHandler = require("../utils/asyncHandler");
 const ApiError = require("../utils/ApiError");
-const {
-  sendSuccess,
-  sendError,
-} = require("../utils/apiResponse");
-const {
-  parsePagination,
-} = require("../utils/pagination");
+const { sendSuccess } = require("../utils/apiResponse");
+const { getPagination } = require("../utils/pagination");
 
-// ============================================================
-// HELPERS
-// ============================================================
+const {
+  ACTIVITY_TYPES,
+  ACTIVITY_STATUS,
+  ACTIVITY_PRIORITY,
+  ACTIVITY_OUTCOMES,
+} = Activity;
+
+// -----------------------------------------------------
+// CONSTANTS / HELPERS
+// -----------------------------------------------------
 
 const POPULATE = [
   {
@@ -61,148 +64,48 @@ const populateActivity = (query) => {
 };
 
 const escapeRegex = (value = "") =>
-  value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-// ============================================================
-// CREATE ACTIVITY
-// ============================================================
+const isValidObjectId = (value) =>
+  mongoose.Types.ObjectId.isValid(value);
 
-/**
- * POST /api/v1/activities
- */
-exports.create = asyncHandler(async (req, res) => {
-  const {
-    type,
-    subject,
-    description,
-    scheduledAt,
-    dueAt,
-    status,
-    priority,
-    outcome,
-    outcomeNotes,
-    assignedTo,
-    lead,
-    company,
-    contact,
-    opportunity,
-    location,
-    meetingLink,
-    phoneNumber,
-    emailAddress,
-    reminderEnabled,
-    reminderAt,
-    isRecurring,
-    recurrence,
-    tags,
-    attachments,
-    internalNotes,
-    durationMinutes,
-    startedAt,
-  } = req.body;
+const getUserId = (req) =>
+  req.user?._id || req.user?.id;
 
-  if (!type) {
-    throw new ApiError(400, "Activity type is required");
+const validateEnum = (value, allowed, field) => {
+  if (
+    value !== undefined &&
+    value !== null &&
+    value !== ""
+  ) {
+    if (!allowed.includes(value)) {
+      throw new ApiError(
+        400,
+        `Invalid ${field}. Allowed values: ${allowed.join(", ")}`
+      );
+    }
   }
+};
 
-  if (!subject) {
-    throw new ApiError(400, "Activity subject is required");
+const validateObjectId = (value, field) => {
+  if (value && !isValidObjectId(value)) {
+    throw new ApiError(
+      400,
+      `Invalid ${field}`
+    );
   }
+};
 
-  // ----------------------------------------------------------
-  // At least one CRM entity should normally be connected.
-  // But standalone activities are allowed.
-  // ----------------------------------------------------------
-
-  const activity = await Activity.create({
-    type,
-    subject,
-    description,
-
-    scheduledAt,
-    dueAt,
-
-    status: status || "PENDING",
-    priority: priority || "MEDIUM",
-
-    outcome,
-    outcomeNotes,
-
-    assignedTo: assignedTo || req.user._id,
-    createdBy: req.user._id,
-
-    lead,
-    company,
-    contact,
-    opportunity,
-
-    location,
-    meetingLink,
-    phoneNumber,
-    emailAddress,
-
-    reminderEnabled: Boolean(reminderEnabled),
-    reminderAt,
-
-    isRecurring: Boolean(isRecurring),
-    recurrence,
-
-    tags,
-    attachments,
-    internalNotes,
-
-    durationMinutes,
-    startedAt,
-  });
-
-  let query = Activity.findById(activity._id);
-
-  query = populateActivity(query);
-
-  const populatedActivity = await query;
-
-  return sendSuccess(
-    res,
-    201,
-    "Activity created successfully",
-    populatedActivity
-  );
+const buildBaseFilter = () => ({
+  isDeleted: false,
 });
 
-// ============================================================
-// GET ALL ACTIVITIES
-// ============================================================
+// -----------------------------------------------------
+// COMMON FILTERS
+// -----------------------------------------------------
 
-/**
- * GET /api/v1/activities
- *
- * Supported:
- *
- * ?page=1
- * ?limit=20
- * ?search=meeting
- * ?type=CALL
- * ?status=PENDING
- * ?priority=HIGH
- * ?assignedTo=USER_ID
- * ?lead=LEAD_ID
- * ?company=COMPANY_ID
- * ?contact=CONTACT_ID
- * ?opportunity=OPPORTUNITY_ID
- * ?from=2026-08-01
- * ?to=2026-08-31
- * ?sortBy=scheduledAt
- * ?sortOrder=asc
- */
-exports.getAll = asyncHandler(async (req, res) => {
+const applyCommonFilters = (filter, query) => {
   const {
-    page,
-    limit,
-    skip,
-  } = parsePagination(req.query);
-
-  const {
-    search,
     type,
     status,
     priority,
@@ -218,59 +121,77 @@ exports.getAll = asyncHandler(async (req, res) => {
     overdue,
     upcoming,
     reminderEnabled,
-    sortBy = "createdAt",
-    sortOrder = "desc",
-  } = req.query;
+  } = query;
 
-  const filter = {
-    isDeleted: false,
-  };
+  validateEnum(
+    type,
+    ACTIVITY_TYPES,
+    "type"
+  );
 
-  // ----------------------------------------------------------
-  // SEARCH
-  // ----------------------------------------------------------
+  validateEnum(
+    status,
+    ACTIVITY_STATUS,
+    "status"
+  );
 
-  if (search?.trim()) {
-    const regex = new RegExp(
-      escapeRegex(search.trim()),
-      "i"
-    );
+  validateEnum(
+    priority,
+    ACTIVITY_PRIORITY,
+    "priority"
+  );
 
-    filter.$or = [
-      { subject: regex },
-      { description: regex },
-      { outcomeNotes: regex },
-      { internalNotes: regex },
-      { emailAddress: regex },
-      { phoneNumber: regex },
-      { location: regex },
-      { tags: regex },
-    ];
-  }
+  validateEnum(
+    outcome,
+    ACTIVITY_OUTCOMES,
+    "outcome"
+  );
 
-  // ----------------------------------------------------------
-  // ENUM FILTERS
-  // ----------------------------------------------------------
+  validateObjectId(
+    assignedTo,
+    "assignedTo"
+  );
+
+  validateObjectId(
+    createdBy,
+    "createdBy"
+  );
+
+  validateObjectId(
+    lead,
+    "lead"
+  );
+
+  validateObjectId(
+    company,
+    "company"
+  );
+
+  validateObjectId(
+    contact,
+    "contact"
+  );
+
+  validateObjectId(
+    opportunity,
+    "opportunity"
+  );
 
   if (type) {
-    filter.type = type.toUpperCase();
+    filter.type = type;
   }
 
   if (status) {
-    filter.status = status.toUpperCase();
+    filter.status = status;
   }
 
   if (priority) {
-    filter.priority = priority.toUpperCase();
+    filter.priority = priority;
   }
 
   if (outcome) {
-    filter.outcome = outcome.toUpperCase();
+    filter.outcome = outcome;
   }
-
-  // ----------------------------------------------------------
-  // USER FILTERS
-  // ----------------------------------------------------------
 
   if (assignedTo) {
     filter.assignedTo = assignedTo;
@@ -279,10 +200,6 @@ exports.getAll = asyncHandler(async (req, res) => {
   if (createdBy) {
     filter.createdBy = createdBy;
   }
-
-  // ----------------------------------------------------------
-  // CRM RELATION FILTERS
-  // ----------------------------------------------------------
 
   if (lead) {
     filter.lead = lead;
@@ -300,9 +217,9 @@ exports.getAll = asyncHandler(async (req, res) => {
     filter.opportunity = opportunity;
   }
 
-  // ----------------------------------------------------------
+  // ---------------------------------------------------
   // DATE RANGE
-  // ----------------------------------------------------------
+  // ---------------------------------------------------
 
   if (from || to) {
     filter.scheduledAt = {};
@@ -311,7 +228,10 @@ exports.getAll = asyncHandler(async (req, res) => {
       const fromDate = new Date(from);
 
       if (Number.isNaN(fromDate.getTime())) {
-        throw new ApiError(400, "Invalid from date");
+        throw new ApiError(
+          400,
+          "Invalid from date"
+        );
       }
 
       filter.scheduledAt.$gte = fromDate;
@@ -321,600 +241,925 @@ exports.getAll = asyncHandler(async (req, res) => {
       const toDate = new Date(to);
 
       if (Number.isNaN(toDate.getTime())) {
-        throw new ApiError(400, "Invalid to date");
+        throw new ApiError(
+          400,
+          "Invalid to date"
+        );
       }
 
-      // Include complete "to" day when only a date is supplied.
-      if (
-        /^\d{4}-\d{2}-\d{2}$/.test(to)
-      ) {
-        toDate.setHours(23, 59, 59, 999);
-      }
+      toDate.setHours(
+        23,
+        59,
+        59,
+        999
+      );
 
       filter.scheduledAt.$lte = toDate;
     }
   }
 
-  // ----------------------------------------------------------
-  // OVERDUE
-  // ----------------------------------------------------------
+  // ---------------------------------------------------
+  // REMINDER
+  // ---------------------------------------------------
 
-  if (overdue === "true") {
+  if (reminderEnabled !== undefined) {
+    filter.reminderEnabled =
+      reminderEnabled === true ||
+      reminderEnabled === "true";
+  }
+
+  // ---------------------------------------------------
+  // OVERDUE
+  // ---------------------------------------------------
+
+  if (
+    overdue === true ||
+    overdue === "true"
+  ) {
     filter.scheduledAt = {
       ...(filter.scheduledAt || {}),
       $lt: new Date(),
     };
 
     filter.status = {
-      $nin: ["COMPLETED", "CANCELLED"],
+      $nin: [
+        "COMPLETED",
+        "CANCELLED",
+      ],
     };
   }
 
-  // ----------------------------------------------------------
+  // ---------------------------------------------------
   // UPCOMING
-  // ----------------------------------------------------------
+  // ---------------------------------------------------
 
-  if (upcoming === "true") {
+  if (
+    upcoming === true ||
+    upcoming === "true"
+  ) {
     filter.scheduledAt = {
       ...(filter.scheduledAt || {}),
       $gte: new Date(),
     };
 
     filter.status = {
-      $nin: ["COMPLETED", "CANCELLED"],
+      $nin: [
+        "COMPLETED",
+        "CANCELLED",
+      ],
     };
   }
+};
 
-  // ----------------------------------------------------------
-  // REMINDER
-  // ----------------------------------------------------------
+// -----------------------------------------------------
+// CREATE
+// POST /activities
+// -----------------------------------------------------
 
-  if (reminderEnabled !== undefined) {
-    filter.reminderEnabled =
-      reminderEnabled === "true";
-  }
+exports.create = asyncHandler(
+  async (req, res) => {
+    const userId = getUserId(req);
 
-  // ----------------------------------------------------------
-  // SORT
-  // ----------------------------------------------------------
-
-  const allowedSortFields = [
-    "createdAt",
-    "updatedAt",
-    "scheduledAt",
-    "dueAt",
-    "completedAt",
-    "subject",
-    "priority",
-    "status",
-    "type",
-  ];
-
-  const safeSortField = allowedSortFields.includes(
-    sortBy
-  )
-    ? sortBy
-    : "createdAt";
-
-  const safeSortOrder =
-    sortOrder === "asc" ? 1 : -1;
-
-  const sort = {
-    [safeSortField]: safeSortOrder,
-  };
-
-  // ----------------------------------------------------------
-  // QUERY
-  // ----------------------------------------------------------
-
-  const [activities, total] = await Promise.all([
-    populateActivity(
-      Activity.find(filter)
-        .sort(sort)
-        .skip(skip)
-        .limit(limit)
-        .lean()
-    ),
-
-    Activity.countDocuments(filter),
-  ]);
-
-  const totalPages =
-    Math.ceil(total / limit) || 1;
-
-  return sendSuccess(
-    res,
-    200,
-    "Activities fetched successfully",
-    {
-      activities,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages,
-        hasNextPage: page < totalPages,
-        hasPreviousPage: page > 1,
-      },
+    if (!userId) {
+      throw new ApiError(
+        401,
+        "Authenticated user not found"
+      );
     }
-  );
-});
 
-// ============================================================
-// GET ACTIVITY BY ID
-// ============================================================
+    const {
+      type,
+      subject,
+      assignedTo,
+      ...payload
+    } = req.body;
 
-/**
- * GET /api/v1/activities/:id
- */
-exports.getById = asyncHandler(async (req, res) => {
-  let query = Activity.findOne({
-    _id: req.params.id,
-    isDeleted: false,
-  });
-
-  query = populateActivity(query);
-
-  const activity = await query;
-
-  if (!activity) {
-    throw new ApiError(
-      404,
-      "Activity not found"
-    );
-  }
-
-  return sendSuccess(
-    res,
-    200,
-    "Activity fetched successfully",
-    activity
-  );
-});
-
-// ============================================================
-// UPDATE ACTIVITY
-// ============================================================
-
-/**
- * PUT /api/v1/activities/:id
- */
-exports.update = asyncHandler(async (req, res) => {
-  const activity = await Activity.findOne({
-    _id: req.params.id,
-    isDeleted: false,
-  });
-
-  if (!activity) {
-    throw new ApiError(
-      404,
-      "Activity not found"
-    );
-  }
-
-  const allowedFields = [
-    "type",
-    "subject",
-    "description",
-    "scheduledAt",
-    "dueAt",
-    "status",
-    "priority",
-    "outcome",
-    "outcomeNotes",
-    "assignedTo",
-    "lead",
-    "company",
-    "contact",
-    "opportunity",
-    "location",
-    "meetingLink",
-    "phoneNumber",
-    "emailAddress",
-    "reminderEnabled",
-    "reminderAt",
-    "isRecurring",
-    "recurrence",
-    "tags",
-    "attachments",
-    "internalNotes",
-    "durationMinutes",
-    "startedAt",
-  ];
-
-  allowedFields.forEach((field) => {
-    if (req.body[field] !== undefined) {
-      activity[field] = req.body[field];
+    if (!type) {
+      throw new ApiError(
+        400,
+        "Activity type is required"
+      );
     }
-  });
 
-  activity.updatedBy = req.user._id;
+    if (
+      !subject ||
+      !String(subject).trim()
+    ) {
+      throw new ApiError(
+        400,
+        "Activity subject is required"
+      );
+    }
 
-  await activity.save();
-
-  let query = Activity.findById(activity._id);
-
-  query = populateActivity(query);
-
-  const updatedActivity = await query;
-
-  return sendSuccess(
-    res,
-    200,
-    "Activity updated successfully",
-    updatedActivity
-  );
-});
-
-// ============================================================
-// DELETE ACTIVITY - SOFT DELETE
-// ============================================================
-
-/**
- * DELETE /api/v1/activities/:id
- */
-exports.remove = asyncHandler(async (req, res) => {
-  const activity = await Activity.findOne({
-    _id: req.params.id,
-    isDeleted: false,
-  });
-
-  if (!activity) {
-    throw new ApiError(
-      404,
-      "Activity not found"
+    validateEnum(
+      type,
+      ACTIVITY_TYPES,
+      "type"
     );
-  }
 
-  activity.isDeleted = true;
-  activity.deletedAt = new Date();
-  activity.deletedBy = req.user._id;
+    const finalAssignedTo =
+      assignedTo || userId;
 
-  await activity.save();
-
-  return sendSuccess(
-    res,
-    200,
-    "Activity deleted successfully"
-  );
-});
-
-// ============================================================
-// COMPLETE ACTIVITY
-// ============================================================
-
-/**
- * PATCH /api/v1/activities/:id/complete
- */
-exports.complete = asyncHandler(async (req, res) => {
-  const {
-    outcome,
-    outcomeNotes,
-    durationMinutes,
-  } = req.body;
-
-  const activity = await Activity.findOne({
-    _id: req.params.id,
-    isDeleted: false,
-  });
-
-  if (!activity) {
-    throw new ApiError(
-      404,
-      "Activity not found"
+    validateObjectId(
+      finalAssignedTo,
+      "assignedTo"
     );
-  }
 
-  activity.status = "COMPLETED";
-  activity.completedAt = new Date();
+    const activity =
+      await Activity.create({
+        ...payload,
+        type,
+        subject: String(subject).trim(),
+        assignedTo: finalAssignedTo,
+        createdBy: userId,
+      });
 
-  if (outcome !== undefined) {
-    activity.outcome = outcome;
-  }
-
-  if (outcomeNotes !== undefined) {
-    activity.outcomeNotes = outcomeNotes;
-  }
-
-  if (durationMinutes !== undefined) {
-    activity.durationMinutes =
-      durationMinutes;
-  }
-
-  activity.updatedBy = req.user._id;
-
-  await activity.save();
-
-  let query = Activity.findById(activity._id);
-
-  query = populateActivity(query);
-
-  const updatedActivity = await query;
-
-  return sendSuccess(
-    res,
-    200,
-    "Activity completed successfully",
-    updatedActivity
-  );
-});
-
-// ============================================================
-// CANCEL ACTIVITY
-// ============================================================
-
-/**
- * PATCH /api/v1/activities/:id/cancel
- */
-exports.cancel = asyncHandler(async (req, res) => {
-  const activity = await Activity.findOne({
-    _id: req.params.id,
-    isDeleted: false,
-  });
-
-  if (!activity) {
-    throw new ApiError(
-      404,
-      "Activity not found"
-    );
-  }
-
-  activity.status = "CANCELLED";
-  activity.updatedBy = req.user._id;
-
-  await activity.save();
-
-  return sendSuccess(
-    res,
-    200,
-    "Activity cancelled successfully",
-    activity
-  );
-});
-
-// ============================================================
-// START ACTIVITY
-// ============================================================
-
-/**
- * PATCH /api/v1/activities/:id/start
- */
-exports.start = asyncHandler(async (req, res) => {
-  const activity = await Activity.findOne({
-    _id: req.params.id,
-    isDeleted: false,
-  });
-
-  if (!activity) {
-    throw new ApiError(
-      404,
-      "Activity not found"
-    );
-  }
-
-  if (activity.status === "COMPLETED") {
-    throw new ApiError(
-      400,
-      "Completed activity cannot be started"
-    );
-  }
-
-  if (activity.status === "CANCELLED") {
-    throw new ApiError(
-      400,
-      "Cancelled activity cannot be started"
-    );
-  }
-
-  activity.status = "IN_PROGRESS";
-  activity.startedAt = new Date();
-  activity.updatedBy = req.user._id;
-
-  await activity.save();
-
-  return sendSuccess(
-    res,
-    200,
-    "Activity started successfully",
-    activity
-  );
-});
-
-// ============================================================
-// ASSIGN ACTIVITY
-// ============================================================
-
-/**
- * PATCH /api/v1/activities/:id/assign
- *
- * Body:
- * {
- *   "assignedTo": "USER_ID"
- * }
- */
-exports.assign = asyncHandler(async (req, res) => {
-  const { assignedTo } = req.body;
-
-  if (!assignedTo) {
-    throw new ApiError(
-      400,
-      "assignedTo is required"
-    );
-  }
-
-  const activity = await Activity.findOne({
-    _id: req.params.id,
-    isDeleted: false,
-  });
-
-  if (!activity) {
-    throw new ApiError(
-      404,
-      "Activity not found"
-    );
-  }
-
-  activity.assignedTo = assignedTo;
-  activity.updatedBy = req.user._id;
-
-  await activity.save();
-
-  let query = Activity.findById(activity._id);
-
-  query = populateActivity(query);
-
-  const updatedActivity = await query;
-
-  return sendSuccess(
-    res,
-    200,
-    "Activity assigned successfully",
-    updatedActivity
-  );
-});
-
-// ============================================================
-// LEAD TIMELINE
-// ============================================================
-
-/**
- * GET /api/v1/activities/lead/:leadId
- */
-exports.getLeadTimeline = asyncHandler(
-  async (req, res) => {
-    const activities = await populateActivity(
-      Activity.find({
-        lead: req.params.leadId,
-        isDeleted: false,
-      })
-        .sort({ scheduledAt: -1, createdAt: -1 })
-        .lean()
-    );
+    const populated =
+      await populateActivity(
+        Activity.findById(activity._id)
+      ).exec();
 
     return sendSuccess(
       res,
-      200,
-      "Lead activity timeline fetched successfully",
-      activities
+      populated,
+      "Activity created successfully",
+      201
     );
   }
 );
 
-// ============================================================
-// COMPANY TIMELINE
-// ============================================================
+// -----------------------------------------------------
+// GET ALL
+// GET /activities
+// -----------------------------------------------------
 
-/**
- * GET /api/v1/activities/company/:companyId
- */
-exports.getCompanyTimeline = asyncHandler(
-  async (req, res) => {
-    const activities = await populateActivity(
-      Activity.find({
-        company: req.params.companyId,
-        isDeleted: false,
-      })
-        .sort({ scheduledAt: -1, createdAt: -1 })
-        .lean()
-    );
-
-    return sendSuccess(
-      res,
-      200,
-      "Company activity timeline fetched successfully",
-      activities
-    );
-  }
-);
-
-// ============================================================
-// CONTACT TIMELINE
-// ============================================================
-
-/**
- * GET /api/v1/activities/contact/:contactId
- */
-exports.getContactTimeline = asyncHandler(
-  async (req, res) => {
-    const activities = await populateActivity(
-      Activity.find({
-        contact: req.params.contactId,
-        isDeleted: false,
-      })
-        .sort({ scheduledAt: -1, createdAt: -1 })
-        .lean()
-    );
-
-    return sendSuccess(
-      res,
-      200,
-      "Contact activity timeline fetched successfully",
-      activities
-    );
-  }
-);
-
-// ============================================================
-// OPPORTUNITY TIMELINE
-// ============================================================
-
-/**
- * GET /api/v1/activities/opportunity/:opportunityId
- */
-exports.getOpportunityTimeline =
-  asyncHandler(async (req, res) => {
-    const activities = await populateActivity(
-      Activity.find({
-        opportunity: req.params.opportunityId,
-        isDeleted: false,
-      })
-        .sort({
-          scheduledAt: -1,
-          createdAt: -1,
-        })
-        .lean()
-    );
-
-    return sendSuccess(
-      res,
-      200,
-      "Opportunity activity timeline fetched successfully",
-      activities
-    );
-  });
-
-// ============================================================
-// MY ACTIVITIES
-// ============================================================
-
-/**
- * GET /api/v1/activities/my
- */
-exports.getMyActivities = asyncHandler(
+exports.getAll = asyncHandler(
   async (req, res) => {
     const {
-      page,
-      limit,
-      skip,
-    } = parsePagination(req.query);
+  page,
+  limit,
+} = getPagination(req.query);
 
-    const filter = {
-      assignedTo: req.user._id,
-      isDeleted: false,
-    };
+    const {
+      search,
+      sortBy = "createdAt",
+      sortOrder = "desc",
+    } = req.query;
 
-    if (req.query.status) {
-      filter.status =
-        req.query.status.toUpperCase();
+    const filter =
+      buildBaseFilter();
+
+    applyCommonFilters(
+      filter,
+      req.query
+    );
+
+    if (search) {
+      const regex = new RegExp(
+        escapeRegex(search),
+        "i"
+      );
+
+      filter.$or = [
+        {
+          subject: regex,
+        },
+        {
+          description: regex,
+        },
+        {
+          outcomeNotes: regex,
+        },
+        {
+          internalNotes: regex,
+        },
+        {
+          phoneNumber: regex,
+        },
+        {
+          emailAddress: regex,
+        },
+      ];
     }
 
-    if (req.query.type) {
-      filter.type =
-        req.query.type.toUpperCase();
+    const allowedSortFields = [
+      "createdAt",
+      "updatedAt",
+      "scheduledAt",
+      "dueAt",
+      "priority",
+      "status",
+      "type",
+      "subject",
+    ];
+
+    const safeSortBy =
+      allowedSortFields.includes(sortBy)
+        ? sortBy
+        : "createdAt";
+
+    const sortDirection =
+      String(sortOrder).toLowerCase() === "asc"
+        ? 1
+        : -1;
+
+    const skip =
+      (page - 1) * limit;
+
+    const [
+      activities,
+      total,
+    ] = await Promise.all([
+      populateActivity(
+        Activity.find(filter)
+          .sort({
+            [safeSortBy]: sortDirection,
+          })
+          .skip(skip)
+          .limit(limit)
+      ).exec(),
+
+      Activity.countDocuments(filter),
+    ]);
+
+    return sendSuccess(
+      res,
+      {
+        activities,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages:
+            Math.ceil(total / limit),
+        },
+      },
+      "Activities fetched successfully",
+      200
+    );
+  }
+);
+
+// -----------------------------------------------------
+// GET BY ID
+// GET /activities/:id
+// -----------------------------------------------------
+
+exports.getById = asyncHandler(
+  async (req, res) => {
+    const { id } = req.params;
+
+    validateObjectId(
+      id,
+      "activity id"
+    );
+
+    const activity =
+      await populateActivity(
+        Activity.findOne({
+          _id: id,
+          isDeleted: false,
+        })
+      ).exec();
+
+    if (!activity) {
+      throw new ApiError(
+        404,
+        "Activity not found"
+      );
     }
 
-    const [activities, total] =
-      await Promise.all([
+    return sendSuccess(
+      res,
+      activity,
+      "Activity fetched successfully",
+      200
+    );
+  }
+);
+
+// -----------------------------------------------------
+// UPDATE
+// PUT /activities/:id
+// -----------------------------------------------------
+
+exports.update = asyncHandler(
+  async (req, res) => {
+    const { id } = req.params;
+
+    validateObjectId(
+      id,
+      "activity id"
+    );
+
+    const {
+      type,
+      status,
+      priority,
+      outcome,
+      assignedTo,
+      ...updates
+    } = req.body;
+
+    if (type) {
+      validateEnum(
+        type,
+        ACTIVITY_TYPES,
+        "type"
+      );
+
+      updates.type = type;
+    }
+
+    if (status) {
+      validateEnum(
+        status,
+        ACTIVITY_STATUS,
+        "status"
+      );
+
+      updates.status = status;
+    }
+
+    if (priority) {
+      validateEnum(
+        priority,
+        ACTIVITY_PRIORITY,
+        "priority"
+      );
+
+      updates.priority = priority;
+    }
+
+    if (outcome) {
+      validateEnum(
+        outcome,
+        ACTIVITY_OUTCOMES,
+        "outcome"
+      );
+
+      updates.outcome = outcome;
+    }
+
+    if (assignedTo) {
+      validateObjectId(
+        assignedTo,
+        "assignedTo"
+      );
+
+      updates.assignedTo =
+        assignedTo;
+    }
+
+    if (
+      updates.subject !== undefined
+    ) {
+      if (
+        !String(
+          updates.subject
+        ).trim()
+      ) {
+        throw new ApiError(
+          400,
+          "Activity subject cannot be empty"
+        );
+      }
+
+      updates.subject =
+        String(
+          updates.subject
+        ).trim();
+    }
+
+    updates.updatedBy =
+      getUserId(req);
+
+    const activity =
+      await Activity.findOneAndUpdate(
+        {
+          _id: id,
+          isDeleted: false,
+        },
+        updates,
+        {
+          new: true,
+          runValidators: true,
+        }
+      );
+
+    if (!activity) {
+      throw new ApiError(
+        404,
+        "Activity not found"
+      );
+    }
+
+    const populated =
+      await populateActivity(
+        Activity.findById(activity._id)
+      ).exec();
+
+    return sendSuccess(
+      res,
+      populated,
+      "Activity updated successfully",
+      200
+    );
+  }
+);
+
+// -----------------------------------------------------
+// SOFT DELETE
+// DELETE /activities/:id
+// -----------------------------------------------------
+
+exports.remove = asyncHandler(
+  async (req, res) => {
+    const { id } = req.params;
+
+    validateObjectId(
+      id,
+      "activity id"
+    );
+
+    const activity =
+      await Activity.findOne({
+        _id: id,
+        isDeleted: false,
+      });
+
+    if (!activity) {
+      throw new ApiError(
+        404,
+        "Activity not found"
+      );
+    }
+
+    activity.isDeleted = true;
+    activity.deletedAt = new Date();
+    activity.deletedBy =
+      getUserId(req);
+    activity.updatedBy =
+      getUserId(req);
+
+    await activity.save();
+
+    return sendSuccess(
+      res,
+      {
+        id: activity._id,
+      },
+      "Activity deleted successfully",
+      200
+    );
+  }
+);
+
+// -----------------------------------------------------
+// COMPLETE
+// PATCH /activities/:id/complete
+// -----------------------------------------------------
+
+exports.complete = asyncHandler(
+  async (req, res) => {
+    const { id } = req.params;
+
+    validateObjectId(
+      id,
+      "activity id"
+    );
+
+    const activity =
+      await Activity.findOne({
+        _id: id,
+        isDeleted: false,
+      });
+
+    if (!activity) {
+      throw new ApiError(
+        404,
+        "Activity not found"
+      );
+    }
+
+    activity.status =
+      "COMPLETED";
+
+    activity.completedAt =
+      new Date();
+
+    if (
+      req.body.durationMinutes !==
+      undefined
+    ) {
+      activity.durationMinutes =
+        req.body.durationMinutes;
+    }
+
+    if (req.body.outcome) {
+      validateEnum(
+        req.body.outcome,
+        ACTIVITY_OUTCOMES,
+        "outcome"
+      );
+
+      activity.outcome =
+        req.body.outcome;
+    }
+
+    if (
+      req.body.outcomeNotes !==
+      undefined
+    ) {
+      activity.outcomeNotes =
+        req.body.outcomeNotes;
+    }
+
+    activity.updatedBy =
+      getUserId(req);
+
+    await activity.save();
+
+    const populated =
+      await populateActivity(
+        Activity.findById(activity._id)
+      ).exec();
+
+    return sendSuccess(
+      res,
+      populated,
+      "Activity completed successfully",
+      200
+    );
+  }
+);
+
+// -----------------------------------------------------
+// CANCEL
+// PATCH /activities/:id/cancel
+// -----------------------------------------------------
+
+exports.cancel = asyncHandler(
+  async (req, res) => {
+    const { id } = req.params;
+
+    validateObjectId(
+      id,
+      "activity id"
+    );
+
+    const activity =
+      await Activity.findOne({
+        _id: id,
+        isDeleted: false,
+      });
+
+    if (!activity) {
+      throw new ApiError(
+        404,
+        "Activity not found"
+      );
+    }
+
+    activity.status =
+      "CANCELLED";
+
+    activity.updatedBy =
+      getUserId(req);
+
+    await activity.save();
+
+    const populated =
+      await populateActivity(
+        Activity.findById(activity._id)
+      ).exec();
+
+    return sendSuccess(
+      res,
+      populated,
+      "Activity cancelled successfully",
+      200
+    );
+  }
+);
+
+// -----------------------------------------------------
+// START
+// PATCH /activities/:id/start
+// -----------------------------------------------------
+
+exports.start = asyncHandler(
+  async (req, res) => {
+    const { id } = req.params;
+
+    validateObjectId(
+      id,
+      "activity id"
+    );
+
+    const activity =
+      await Activity.findOne({
+        _id: id,
+        isDeleted: false,
+      });
+
+    if (!activity) {
+      throw new ApiError(
+        404,
+        "Activity not found"
+      );
+    }
+
+    activity.status =
+      "IN_PROGRESS";
+
+    activity.startedAt =
+      new Date();
+
+    activity.updatedBy =
+      getUserId(req);
+
+    await activity.save();
+
+    const populated =
+      await populateActivity(
+        Activity.findById(activity._id)
+      ).exec();
+
+    return sendSuccess(
+      res,
+      populated,
+      "Activity started successfully",
+      200
+    );
+  }
+);
+
+// -----------------------------------------------------
+// ASSIGN
+// PATCH /activities/:id/assign
+// -----------------------------------------------------
+
+exports.assign = asyncHandler(
+  async (req, res) => {
+    const { id } = req.params;
+    const { assignedTo } = req.body;
+
+    validateObjectId(
+      id,
+      "activity id"
+    );
+
+    if (!assignedTo) {
+      throw new ApiError(
+        400,
+        "assignedTo is required"
+      );
+    }
+
+    validateObjectId(
+      assignedTo,
+      "assignedTo"
+    );
+
+    const activity =
+      await Activity.findOne({
+        _id: id,
+        isDeleted: false,
+      });
+
+    if (!activity) {
+      throw new ApiError(
+        404,
+        "Activity not found"
+      );
+    }
+
+    activity.assignedTo =
+      assignedTo;
+
+    activity.updatedBy =
+      getUserId(req);
+
+    await activity.save();
+
+    const populated =
+      await populateActivity(
+        Activity.findById(activity._id)
+      ).exec();
+
+    return sendSuccess(
+      res,
+      populated,
+      "Activity assigned successfully",
+      200
+    );
+  }
+);
+
+// -----------------------------------------------------
+// LEAD TIMELINE
+// GET /activities/lead/:leadId
+// -----------------------------------------------------
+
+exports.getLeadTimeline =
+  asyncHandler(
+    async (req, res) => {
+      const { leadId } = req.params;
+
+      validateObjectId(
+        leadId,
+        "lead id"
+      );
+
+      const activities =
+        await populateActivity(
+          Activity.find({
+            lead: leadId,
+            isDeleted: false,
+          }).sort({
+            scheduledAt: -1,
+            createdAt: -1,
+          })
+        ).exec();
+
+      return sendSuccess(
+        res,
+        {
+          activities,
+          total: activities.length,
+        },
+        "Lead activity timeline fetched successfully",
+        200
+      );
+    }
+  );
+
+// -----------------------------------------------------
+// COMPANY TIMELINE
+// GET /activities/company/:companyId
+// -----------------------------------------------------
+
+exports.getCompanyTimeline =
+  asyncHandler(
+    async (req, res) => {
+      const { companyId } =
+        req.params;
+
+      validateObjectId(
+        companyId,
+        "company id"
+      );
+
+      const activities =
+        await populateActivity(
+          Activity.find({
+            company: companyId,
+            isDeleted: false,
+          }).sort({
+            scheduledAt: -1,
+            createdAt: -1,
+          })
+        ).exec();
+
+      return sendSuccess(
+        res,
+        {
+          activities,
+          total: activities.length,
+        },
+        "Company activity timeline fetched successfully",
+        200
+      );
+    }
+  );
+
+// -----------------------------------------------------
+// CONTACT TIMELINE
+// GET /activities/contact/:contactId
+// -----------------------------------------------------
+
+exports.getContactTimeline =
+  asyncHandler(
+    async (req, res) => {
+      const { contactId } =
+        req.params;
+
+      validateObjectId(
+        contactId,
+        "contact id"
+      );
+
+      const activities =
+        await populateActivity(
+          Activity.find({
+            contact: contactId,
+            isDeleted: false,
+          }).sort({
+            scheduledAt: -1,
+            createdAt: -1,
+          })
+        ).exec();
+
+      return sendSuccess(
+        res,
+        {
+          activities,
+          total: activities.length,
+        },
+        "Contact activity timeline fetched successfully",
+        200
+      );
+    }
+  );
+
+// -----------------------------------------------------
+// OPPORTUNITY TIMELINE
+// GET /activities/opportunity/:opportunityId
+// -----------------------------------------------------
+
+exports.getOpportunityTimeline =
+  asyncHandler(
+    async (req, res) => {
+      const {
+        opportunityId,
+      } = req.params;
+
+      validateObjectId(
+        opportunityId,
+        "opportunity id"
+      );
+
+      const activities =
+        await populateActivity(
+          Activity.find({
+            opportunity:
+              opportunityId,
+            isDeleted: false,
+          }).sort({
+            scheduledAt: -1,
+            createdAt: -1,
+          })
+        ).exec();
+
+      return sendSuccess(
+        res,
+        {
+          activities,
+          total: activities.length,
+        },
+        "Opportunity activity timeline fetched successfully",
+        200
+      );
+    }
+  );
+
+// -----------------------------------------------------
+// MY ACTIVITIES
+// GET /activities/my
+// -----------------------------------------------------
+
+// -----------------------------------------------------
+// MY ACTIVITIES
+// GET /activities/my
+// -----------------------------------------------------
+
+exports.getMyActivities =
+  asyncHandler(
+    async (req, res) => {
+      const userId =
+        getUserId(req);
+
+      if (!userId) {
+        throw new ApiError(
+          401,
+          "Authenticated user not found"
+        );
+      }
+
+      const {
+        page,
+        limit,
+        skip,
+      } = getPagination(
+        req.query
+      );
+
+      const filter =
+        buildBaseFilter();
+
+      filter.assignedTo =
+        userId;
+
+      applyCommonFilters(
+        filter,
+        req.query
+      );
+
+      const [
+        activities,
+        total,
+      ] = await Promise.all([
         populateActivity(
           Activity.find(filter)
             .sort({
@@ -923,348 +1168,294 @@ exports.getMyActivities = asyncHandler(
             })
             .skip(skip)
             .limit(limit)
-            .lean()
-        ),
+        ).exec(),
 
-        Activity.countDocuments(filter),
+        Activity.countDocuments(
+          filter
+        ),
       ]);
 
-    const totalPages =
-      Math.ceil(total / limit) || 1;
-
-    return sendSuccess(
-      res,
-      200,
-      "My activities fetched successfully",
-      {
-        activities,
-        pagination: {
-          page,
-          limit,
-          total,
-          totalPages,
-          hasNextPage: page < totalPages,
-          hasPreviousPage: page > 1,
+      return sendSuccess(
+        res,
+        {
+          activities,
+          pagination: {
+            page,
+            limit,
+            total,
+            totalPages:
+              Math.ceil(
+                total / limit
+              ),
+          },
         },
-      }
-    );
-  }
-);
+        "My activities fetched successfully",
+        200
+      );
+    }
+  );
 
-// ============================================================
-// UPCOMING ACTIVITIES
-// ============================================================
+// -----------------------------------------------------
+// UPCOMING
+// GET /activities/upcoming
+// -----------------------------------------------------
 
-/**
- * GET /api/v1/activities/upcoming
- */
-exports.getUpcoming = asyncHandler(
-  async (req, res) => {
-    const limit = Math.min(
-      Number(req.query.limit) || 20,
-      100
-    );
+exports.getUpcoming =
+  asyncHandler(
+    async (req, res) => {
+      const {
+        page,
+        limit,
+        skip,
+      } = getPagination(
+        req.query
+      );
 
-    const filter = {
-      isDeleted: false,
-      scheduledAt: {
+      const filter =
+        buildBaseFilter();
+
+      filter.scheduledAt = {
         $gte: new Date(),
-      },
-      status: {
+      };
+
+      filter.status = {
         $nin: [
           "COMPLETED",
           "CANCELLED",
         ],
-      },
-    };
+      };
 
-    if (req.query.assignedTo) {
-      filter.assignedTo =
-        req.query.assignedTo;
+      applyCommonFilters(
+        filter,
+        req.query
+      );
+
+      const [
+        activities,
+        total,
+      ] = await Promise.all([
+        populateActivity(
+          Activity.find(filter)
+            .sort({
+              scheduledAt: 1,
+            })
+            .skip(skip)
+            .limit(limit)
+        ).exec(),
+
+        Activity.countDocuments(
+          filter
+        ),
+      ]);
+
+      return sendSuccess(
+        res,
+        {
+          activities,
+          pagination: {
+            page,
+            limit,
+            total,
+            totalPages:
+              Math.ceil(
+                total / limit
+              ),
+          },
+        },
+        "Upcoming activities fetched successfully",
+        200
+      );
     }
+  );
 
-    const activities = await populateActivity(
-      Activity.find(filter)
-        .sort({ scheduledAt: 1 })
-        .limit(limit)
-        .lean()
-    );
+// -----------------------------------------------------
+// OVERDUE
+// GET /activities/overdue
+// -----------------------------------------------------
 
-    return sendSuccess(
-      res,
-      200,
-      "Upcoming activities fetched successfully",
-      activities
-    );
-  }
-);
+exports.getOverdue =
+  asyncHandler(
+    async (req, res) => {
+      const {
+        page,
+        limit,
+        skip,
+      } = getPagination(
+        req.query
+      );
 
-// ============================================================
-// OVERDUE ACTIVITIES
-// ============================================================
+      const filter =
+        buildBaseFilter();
 
-/**
- * GET /api/v1/activities/overdue
- */
-exports.getOverdue = asyncHandler(
-  async (req, res) => {
-    const limit = Math.min(
-      Number(req.query.limit) || 50,
-      100
-    );
-
-    const filter = {
-      isDeleted: false,
-      scheduledAt: {
+      filter.scheduledAt = {
         $lt: new Date(),
-      },
-      status: {
+      };
+
+      filter.status = {
         $nin: [
           "COMPLETED",
           "CANCELLED",
         ],
-      },
-    };
+      };
 
-    if (req.query.assignedTo) {
-      filter.assignedTo =
-        req.query.assignedTo;
+      applyCommonFilters(
+        filter,
+        req.query
+      );
+
+      const [
+        activities,
+        total,
+      ] = await Promise.all([
+        populateActivity(
+          Activity.find(filter)
+            .sort({
+              scheduledAt: 1,
+            })
+            .skip(skip)
+            .limit(limit)
+        ).exec(),
+
+        Activity.countDocuments(
+          filter
+        ),
+      ]);
+
+      return sendSuccess(
+        res,
+        {
+          activities,
+          pagination: {
+            page,
+            limit,
+            total,
+            totalPages:
+              Math.ceil(
+                total / limit
+              ),
+          },
+        },
+        "Overdue activities fetched successfully",
+        200
+      );
     }
-
-    const activities = await populateActivity(
-      Activity.find(filter)
-        .sort({ scheduledAt: 1 })
-        .limit(limit)
-        .lean()
-    );
-
-    return sendSuccess(
-      res,
-      200,
-      "Overdue activities fetched successfully",
-      activities
-    );
-  }
-);
-
-// ============================================================
+  );
+// -----------------------------------------------------
 // CALENDAR
-// ============================================================
+// GET /activities/calendar
+// -----------------------------------------------------
 
-/**
- * GET /api/v1/activities/calendar?from=...&to=...
- */
-exports.getCalendar = asyncHandler(
-  async (req, res) => {
-    const { from, to } = req.query;
+exports.getCalendar =
+  asyncHandler(
+    async (req, res) => {
+      const {
+        from,
+        to,
+        assignedTo,
+      } = req.query;
 
-    if (!from || !to) {
-      throw new ApiError(
-        400,
-        "from and to dates are required"
-      );
-    }
-
-    const fromDate = new Date(from);
-    const toDate = new Date(to);
-
-    if (
-      Number.isNaN(fromDate.getTime()) ||
-      Number.isNaN(toDate.getTime())
-    ) {
-      throw new ApiError(
-        400,
-        "Invalid calendar date range"
-      );
-    }
-
-    toDate.setHours(
-      23,
-      59,
-      59,
-      999
-    );
-
-    const filter = {
-      isDeleted: false,
-      scheduledAt: {
-        $gte: fromDate,
-        $lte: toDate,
-      },
-    };
-
-    if (req.query.assignedTo) {
-      filter.assignedTo =
-        req.query.assignedTo;
-    }
-
-    const activities = await populateActivity(
-      Activity.find(filter)
-        .sort({ scheduledAt: 1 })
-        .lean()
-    );
-
-    return sendSuccess(
-      res,
-      200,
-      "Activity calendar fetched successfully",
-      activities
-    );
-  }
-);
-
-// ============================================================
-// ACTIVITY STATISTICS
-// ============================================================
-
-/**
- * GET /api/v1/activities/stats
- */
-exports.getStats = asyncHandler(
-  async (req, res) => {
-    const match = {
-      isDeleted: false,
-    };
-
-    if (req.query.assignedTo) {
-      match.assignedTo =
-        req.query.assignedTo;
-    }
-
-    if (req.query.from || req.query.to) {
-      match.createdAt = {};
-
-      if (req.query.from) {
-        match.createdAt.$gte =
-          new Date(req.query.from);
+      if (!from || !to) {
+        throw new ApiError(
+          400,
+          "from and to dates are required"
+        );
       }
 
-      if (req.query.to) {
-        const date = new Date(
-          req.query.to
-        );
+      const fromDate =
+        new Date(from);
 
-        date.setHours(
-          23,
-          59,
-          59,
-          999
-        );
+      const toDate =
+        new Date(to);
 
-        match.createdAt.$lte = date;
+      if (
+        Number.isNaN(
+          fromDate.getTime()
+        )
+      ) {
+        throw new ApiError(
+          400,
+          "Invalid from date"
+        );
       }
-    }
 
-    const [
-      total,
-      pending,
-      inProgress,
-      completed,
-      cancelled,
-      overdue,
-      byType,
-      byPriority,
-      byOutcome,
-    ] = await Promise.all([
-      Activity.countDocuments(match),
+      if (
+        Number.isNaN(
+          toDate.getTime()
+        )
+      ) {
+        throw new ApiError(
+          400,
+          "Invalid to date"
+        );
+      }
 
-      Activity.countDocuments({
-        ...match,
-        status: "PENDING",
-      }),
+      toDate.setHours(
+        23,
+        59,
+        59,
+        999
+      );
 
-      Activity.countDocuments({
-        ...match,
-        status: "IN_PROGRESS",
-      }),
-
-      Activity.countDocuments({
-        ...match,
-        status: "COMPLETED",
-      }),
-
-      Activity.countDocuments({
-        ...match,
-        status: "CANCELLED",
-      }),
-
-      Activity.countDocuments({
-        ...match,
+      const filter = {
+        isDeleted: false,
         scheduledAt: {
-          $lt: new Date(),
+          $gte: fromDate,
+          $lte: toDate,
         },
-        status: {
-          $nin: [
-            "COMPLETED",
-            "CANCELLED",
-          ],
-        },
-      }),
+      };
 
-      Activity.aggregate([
-        { $match: match },
+      if (assignedTo) {
+        validateObjectId(
+          assignedTo,
+          "assignedTo"
+        );
 
+        filter.assignedTo =
+          assignedTo;
+      }
+
+      const activities =
+        await populateActivity(
+          Activity.find(filter)
+            .sort({
+              scheduledAt: 1,
+            })
+        ).exec();
+
+      return sendSuccess(
+        res,
         {
-          $group: {
-            _id: "$type",
-            count: {
-              $sum: 1,
-            },
-          },
+          activities,
+          from: fromDate,
+          to: toDate,
+          total: activities.length,
         },
+        "Activity calendar fetched successfully",
+        200
+      );
+    }
+  );
 
-        {
-          $sort: {
-            count: -1,
-          },
-        },
-      ]),
+// -----------------------------------------------------
+// STATS
+// GET /activities/stats
+// -----------------------------------------------------
 
-      Activity.aggregate([
-        { $match: match },
+exports.getStats =
+  asyncHandler(
+    async (req, res) => {
+      const filter =
+        buildBaseFilter();
 
-        {
-          $group: {
-            _id: "$priority",
-            count: {
-              $sum: 1,
-            },
-          },
-        },
-      ]),
+      applyCommonFilters(
+        filter,
+        req.query
+      );
 
-      Activity.aggregate([
-        {
-          $match: {
-            ...match,
-            outcome: {
-              $ne: null,
-            },
-          },
-        },
+      const now =
+        new Date();
 
-        {
-          $group: {
-            _id: "$outcome",
-            count: {
-              $sum: 1,
-            },
-          },
-        },
-
-        {
-          $sort: {
-            count: -1,
-          },
-        },
-      ]),
-    ]);
-
-    return sendSuccess(
-      res,
-      200,
-      "Activity statistics fetched successfully",
-      {
+      const [
         total,
         pending,
         inProgress,
@@ -1274,54 +1465,179 @@ exports.getStats = asyncHandler(
         byType,
         byPriority,
         byOutcome,
-      }
-    );
-  }
-);
+      ] = await Promise.all([
+        Activity.countDocuments(
+          filter
+        ),
 
-// ============================================================
-// RESTORE SOFT-DELETED ACTIVITY
-// ============================================================
+        Activity.countDocuments({
+          ...filter,
+          status: "PENDING",
+        }),
 
-/**
- * PATCH /api/v1/activities/:id/restore
- */
-exports.restore = asyncHandler(
-  async (req, res) => {
-    const activity =
-      await Activity.findOne({
-        _id: req.params.id,
-        isDeleted: true,
-      });
+        Activity.countDocuments({
+          ...filter,
+          status: "IN_PROGRESS",
+        }),
 
-    if (!activity) {
-      throw new ApiError(
-        404,
-        "Deleted activity not found"
+        Activity.countDocuments({
+          ...filter,
+          status: "COMPLETED",
+        }),
+
+        Activity.countDocuments({
+          ...filter,
+          status: "CANCELLED",
+        }),
+
+        Activity.countDocuments({
+          ...filter,
+          scheduledAt: {
+            ...(filter.scheduledAt || {}),
+            $lt: now,
+          },
+          status: {
+            $nin: [
+              "COMPLETED",
+              "CANCELLED",
+            ],
+          },
+        }),
+
+        Activity.aggregate([
+          {
+            $match: filter,
+          },
+          {
+            $group: {
+              _id: "$type",
+              count: {
+                $sum: 1,
+              },
+            },
+          },
+          {
+            $sort: {
+              count: -1,
+            },
+          },
+        ]),
+
+        Activity.aggregate([
+          {
+            $match: filter,
+          },
+          {
+            $group: {
+              _id: "$priority",
+              count: {
+                $sum: 1,
+              },
+            },
+          },
+          {
+            $sort: {
+              count: -1,
+            },
+          },
+        ]),
+
+        Activity.aggregate([
+          {
+            $match: {
+              ...filter,
+              outcome: {
+                $ne: null,
+              },
+            },
+          },
+          {
+            $group: {
+              _id: "$outcome",
+              count: {
+                $sum: 1,
+              },
+            },
+          },
+          {
+            $sort: {
+              count: -1,
+            },
+          },
+        ]),
+      ]);
+
+      return sendSuccess(
+        res,
+        {
+          total,
+          pending,
+          inProgress,
+          completed,
+          cancelled,
+          overdue,
+          byType,
+          byPriority,
+          byOutcome,
+        },
+        "Activity statistics fetched successfully",
+        200
       );
     }
+  );
 
-    activity.isDeleted = false;
-    activity.deletedAt = undefined;
-    activity.deletedBy = undefined;
-    activity.updatedBy = req.user._id;
+// -----------------------------------------------------
+// RESTORE
+// PATCH /activities/:id/restore
+// -----------------------------------------------------
 
-    await activity.save();
+exports.restore =
+  asyncHandler(
+    async (req, res) => {
+      const { id } = req.params;
 
-    let query = Activity.findById(
-      activity._id
-    );
+      validateObjectId(
+        id,
+        "activity id"
+      );
 
-    query = populateActivity(query);
+      const activity =
+        await Activity.findOne({
+          _id: id,
+          isDeleted: true,
+        });
 
-    const restoredActivity =
-      await query;
+      if (!activity) {
+        throw new ApiError(
+          404,
+          "Deleted activity not found"
+        );
+      }
 
-    return sendSuccess(
-      res,
-      200,
-      "Activity restored successfully",
-      restoredActivity
-    );
-  }
-);       
+      activity.isDeleted =
+        false;
+
+      activity.deletedAt =
+        undefined;
+
+      activity.deletedBy =
+        undefined;
+
+      activity.updatedBy =
+        getUserId(req);
+
+      await activity.save();
+
+      const populated =
+        await populateActivity(
+          Activity.findById(activity._id)
+        ).exec();
+
+      return sendSuccess(
+        res,
+        populated,
+        "Activity restored successfully",
+        200
+      );
+    }
+  );

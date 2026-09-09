@@ -217,22 +217,22 @@ const calculateTotals = (items = []) => {
 
 const statusClasses = {
   DRAFT:
-    'bg-slate-500/10 text-slate-300 border-slate-500/20',
+    'bg-slate-500/10 text-slate-700 border-slate-500/20',
 
   SENT:
-    'bg-blue-500/10 text-blue-400 border-blue-500/20',
+    'bg-blue-50 text-blue-700 border-blue-200',
 
   VIEWED:
-    'bg-violet-500/10 text-violet-400 border-violet-500/20',
+    'bg-violet-50 text-violet-700 border-violet-200',
 
   ACCEPTED:
-    'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+    'bg-emerald-50 text-emerald-700 border-emerald-200',
 
   REJECTED:
-    'bg-red-500/10 text-red-400 border-red-500/20',
+    'bg-red-50 text-red-700 border-red-200',
 
   EXPIRED:
-    'bg-orange-500/10 text-orange-400 border-orange-500/20',
+    'bg-orange-50 text-orange-700 border-orange-200',
 };
 
 /* =========================================================
@@ -266,29 +266,29 @@ const StatCard = ({
   icon: Icon,
 }) => {
   return (
-    <div className="group relative overflow-hidden rounded-2xl border border-white/[0.07] bg-[#11141b] p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-white/[0.12]">
-      <div className="absolute right-0 top-0 h-24 w-24 rounded-full bg-white/[0.02] blur-2xl transition-all group-hover:bg-white/[0.04]" />
+    <div className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-slate-400">
+      <div className="absolute right-0 top-0 h-24 w-24 rounded-full bg-slate-50 blur-2xl transition-all group-hover:bg-brand-100" />
 
       <div className="relative">
         <div className="mb-4 flex items-center justify-between">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/[0.07] bg-white/[0.03]">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-slate-50">
             <Icon
-              className="h-5 w-5 text-slate-300"
+              className="h-5 w-5 text-slate-700"
               strokeWidth={1.8}
             />
           </div>
         </div>
 
-        <p className="text-xs font-medium text-slate-500">
+        <p className="text-xs font-medium text-slate-600">
           {title}
         </p>
 
-        <h3 className="mt-1 text-2xl font-bold tracking-tight text-white">
+        <h3 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">
           {value}
         </h3>
 
         {subtitle && (
-          <p className="mt-1 text-xs text-slate-500">
+          <p className="mt-1 text-xs text-slate-600">
             {subtitle}
           </p>
         )}
@@ -318,11 +318,11 @@ const Modal = ({
       />
 
       <div
-        className={`relative flex max-h-[92vh] w-full ${size} flex-col overflow-hidden rounded-3xl border border-white/[0.08] bg-[#0d1016] shadow-2xl`}
+        className={`relative flex max-h-[92vh] w-full ${size} flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl`}
       >
-        <div className="flex shrink-0 items-center justify-between border-b border-white/[0.07] px-6 py-5">
+        <div className="flex shrink-0 items-center justify-between border-b border-slate-200 px-6 py-5">
           <div>
-            <h2 className="text-lg font-bold text-white">
+            <h2 className="text-lg font-bold text-slate-900">
               {title}
             </h2>
           </div>
@@ -330,7 +330,7 @@ const Modal = ({
           <button
             type="button"
             onClick={onClose}
-            className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/[0.07] bg-white/[0.03] text-slate-400 transition hover:bg-white/[0.06] hover:text-white"
+            className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
           >
             <X className="h-4 w-4" />
           </button>
@@ -360,10 +360,10 @@ const Input = ({
   return (
     <div>
       {label && (
-        <label className="mb-2 block text-xs font-semibold text-slate-400">
+        <label className="mb-2 block text-xs font-semibold text-slate-600">
           {label}
           {required && (
-            <span className="ml-1 text-red-400">*</span>
+            <span className="ml-1 text-red-700">*</span>
           )}
         </label>
       )}
@@ -374,7 +374,7 @@ const Input = ({
         onChange={onChange}
         placeholder={placeholder}
         disabled={disabled}
-        className="h-11 w-full rounded-xl border border-white/[0.08] bg-[#11141b] px-3.5 text-sm text-white outline-none placeholder:text-slate-600 transition focus:border-white/20 focus:bg-[#141821] disabled:cursor-not-allowed disabled:opacity-50"
+        className="h-11 w-full rounded-xl border border-slate-300 bg-white px-3.5 text-sm text-slate-900 outline-none placeholder:text-slate-500 transition focus:border-brand-500 focus:bg-white disabled:cursor-not-allowed disabled:opacity-50 hover:border-slate-400 focus:ring-4 focus:ring-brand-500/15"
       />
     </div>
   );
@@ -395,10 +395,10 @@ const Select = ({
   return (
     <div>
       {label && (
-        <label className="mb-2 block text-xs font-semibold text-slate-400">
+        <label className="mb-2 block text-xs font-semibold text-slate-600">
           {label}
           {required && (
-            <span className="ml-1 text-red-400">*</span>
+            <span className="ml-1 text-red-700">*</span>
           )}
         </label>
       )}
@@ -406,7 +406,7 @@ const Select = ({
       <select
         value={value || ''}
         onChange={onChange}
-        className="h-11 w-full rounded-xl border border-white/[0.08] bg-[#11141b] px-3.5 text-sm text-white outline-none transition focus:border-white/20"
+        className="h-11 w-full rounded-xl border border-slate-300 bg-white px-3.5 text-sm text-slate-900 outline-none transition focus:border-brand-500 placeholder:text-slate-500 hover:border-slate-400 focus:ring-4 focus:ring-brand-500/15 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500"
       >
         <option value="">
           {placeholder}
@@ -1243,7 +1243,7 @@ export default function Quotations() {
 
   return (
     <div
-      className="min-h-screen bg-[#090b10] text-white"
+      className="min-h-screen bg-surface text-slate-900"
       onClick={() => setMenuId(null)}
     >
       <div className="mx-auto max-w-[1600px] space-y-6 p-4 md:p-6 lg:p-8">
@@ -1255,14 +1255,14 @@ export default function Quotations() {
         <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <div className="mb-2 flex items-center gap-2">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/[0.07] bg-white/[0.04]">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-slate-100">
                 <FileText
-                  className="h-4 w-4 text-slate-300"
+                  className="h-4 w-4 text-slate-700"
                   strokeWidth={1.8}
                 />
               </div>
 
-              <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+              <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-600">
                 Sales
               </span>
             </div>
@@ -1271,7 +1271,7 @@ export default function Quotations() {
               Quotations
             </h1>
 
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-1 text-sm text-slate-600">
               Create, manage and track customer quotations.
             </p>
           </div>
@@ -1283,7 +1283,7 @@ export default function Quotations() {
                 fetchQuotations();
                 fetchStats();
               }}
-              className="flex h-11 items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 text-sm font-semibold text-slate-300 transition hover:bg-white/[0.06] hover:text-white"
+              className="flex h-11 items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 hover:text-slate-900"
             >
               <RefreshCw className="h-4 w-4" />
               <span className="hidden sm:inline">
@@ -1307,11 +1307,11 @@ export default function Quotations() {
         ================================================= */}
 
         {error && (
-          <div className="flex items-start gap-3 rounded-2xl border border-red-500/20 bg-red-500/[0.06] px-4 py-3">
-            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-400" />
+          <div className="flex items-start gap-3 rounded-2xl border border-red-200 bg-red-500/[0.06] px-4 py-3">
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-700" />
 
             <div className="flex-1">
-              <p className="text-sm font-medium text-red-300">
+              <p className="text-sm font-medium text-red-700">
                 {error}
               </p>
             </div>
@@ -1319,7 +1319,7 @@ export default function Quotations() {
             <button
               type="button"
               onClick={() => setError('')}
-              className="text-red-400 transition hover:text-red-300"
+              className="text-red-700 transition hover:text-red-700"
             >
               <X className="h-4 w-4" />
             </button>
@@ -1394,10 +1394,10 @@ export default function Quotations() {
             TOOLBAR
         ================================================= */}
 
-        <div className="rounded-2xl border border-white/[0.07] bg-[#0f1218]">
+        <div className="rounded-2xl border border-slate-200 bg-white">
           <div className="flex flex-col gap-3 p-4 lg:flex-row lg:items-center">
             <div className="relative flex-1">
-              <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-600" />
+              <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
 
               <input
                 type="text"
@@ -1407,7 +1407,7 @@ export default function Quotations() {
                   setPage(1);
                 }}
                 placeholder="Search quotations..."
-                className="h-11 w-full rounded-xl border border-white/[0.07] bg-white/[0.02] pl-10 pr-4 text-sm text-white outline-none placeholder:text-slate-600 focus:border-white/15"
+                className="h-11 w-full rounded-xl border border-slate-300 bg-slate-50 pl-10 pr-4 text-sm text-slate-900 outline-none placeholder:text-slate-500 focus:border-brand-500 transition hover:border-slate-400 focus:ring-4 focus:ring-brand-500/15 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500"
               />
             </div>
 
@@ -1417,7 +1417,7 @@ export default function Quotations() {
                 setStatus(event.target.value);
                 setPage(1);
               }}
-              className="h-11 rounded-xl border border-white/[0.07] bg-[#11141b] px-4 text-sm text-slate-300 outline-none focus:border-white/15"
+              className="h-11 rounded-xl border border-slate-300 bg-white px-4 text-sm text-slate-700 outline-none focus:border-brand-500 placeholder:text-slate-500 transition hover:border-slate-400 focus:ring-4 focus:ring-brand-500/15 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500"
             >
               {STATUS_OPTIONS.map(
                 (item) => (
@@ -1443,8 +1443,8 @@ export default function Quotations() {
               }
               className={`flex h-11 items-center justify-center gap-2 rounded-xl border px-4 text-sm font-semibold transition ${
                 showFilters
-                  ? 'border-white/15 bg-white/[0.07] text-white'
-                  : 'border-white/[0.07] bg-white/[0.02] text-slate-400 hover:bg-white/[0.05] hover:text-white'
+                  ? 'border-slate-300 bg-slate-100 text-slate-900'
+                  : 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900'
               }`}
             >
               <Filter className="h-4 w-4" />
@@ -1456,7 +1456,7 @@ export default function Quotations() {
               <button
                 type="button"
                 onClick={clearFilters}
-                className="h-11 rounded-xl px-3 text-sm font-semibold text-slate-500 transition hover:text-white"
+                className="h-11 rounded-xl px-3 text-sm font-semibold text-slate-600 transition hover:text-slate-900"
               >
                 Clear
               </button>
@@ -1464,36 +1464,36 @@ export default function Quotations() {
           </div>
 
           {showFilters && (
-            <div className="border-t border-white/[0.07] p-4">
+            <div className="border-t border-slate-200 p-4">
               <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-                <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
-                  <p className="text-xs text-slate-500">
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                  <p className="text-xs text-slate-600">
                     Current status
                   </p>
 
-                  <p className="mt-1 text-sm font-semibold text-white">
+                  <p className="mt-1 text-sm font-semibold text-slate-900">
                     {status === 'ALL'
                       ? 'All'
                       : status}
                   </p>
                 </div>
 
-                <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
-                  <p className="text-xs text-slate-500">
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                  <p className="text-xs text-slate-600">
                     Results
                   </p>
 
-                  <p className="mt-1 text-sm font-semibold text-white">
+                  <p className="mt-1 text-sm font-semibold text-slate-900">
                     {pagination.total || 0}
                   </p>
                 </div>
 
-                <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
-                  <p className="text-xs text-slate-500">
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                  <p className="text-xs text-slate-600">
                     Sort
                   </p>
 
-                  <p className="mt-1 text-sm font-semibold text-white">
+                  <p className="mt-1 text-sm font-semibold text-slate-900">
                     {sortBy} · {sortOrder}
                   </p>
                 </div>
@@ -1506,11 +1506,11 @@ export default function Quotations() {
             TABLE
         ================================================= */}
 
-        <div className="overflow-hidden rounded-2xl border border-white/[0.07] bg-[#0f1218]">
+        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[1050px]">
               <thead>
-                <tr className="border-b border-white/[0.07] text-left">
+                <tr className="border-b border-slate-200 text-left">
                   <th className="px-5 py-4 text-[11px] font-bold uppercase tracking-wider text-slate-600">
                     Quotation
                   </th>
@@ -1535,7 +1535,7 @@ export default function Quotations() {
                           'grandTotal'
                         )
                       }
-                      className="flex items-center gap-1.5 transition hover:text-white"
+                      className="flex items-center gap-1.5 transition hover:text-slate-900"
                     >
                       Amount
 
@@ -1568,9 +1568,9 @@ export default function Quotations() {
                       className="px-5 py-16 text-center"
                     >
                       <div className="flex flex-col items-center justify-center">
-                        <Loader2 className="h-7 w-7 animate-spin text-slate-500" />
+                        <Loader2 className="h-7 w-7 animate-spin text-slate-600" />
 
-                        <p className="mt-3 text-sm text-slate-500">
+                        <p className="mt-3 text-sm text-slate-600">
                           Loading quotations...
                         </p>
                       </div>
@@ -1584,15 +1584,15 @@ export default function Quotations() {
                       className="px-5 py-16 text-center"
                     >
                       <div className="mx-auto flex max-w-sm flex-col items-center">
-                        <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-white/[0.07] bg-white/[0.03]">
-                          <FileText className="h-6 w-6 text-slate-600" />
+                        <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50">
+                          <FileText className="h-6 w-6 text-slate-500" />
                         </div>
 
-                        <h3 className="mt-4 text-sm font-bold text-white">
+                        <h3 className="mt-4 text-sm font-bold text-slate-900">
                           No quotations found
                         </h3>
 
-                        <p className="mt-1 text-xs leading-5 text-slate-600">
+                        <p className="mt-1 text-xs leading-5 text-slate-500">
                           Create your first quotation or adjust your filters.
                         </p>
 
@@ -1621,7 +1621,7 @@ export default function Quotations() {
                           key={getId(
                             quotation
                           )}
-                          className="group border-b border-white/[0.05] transition hover:bg-white/[0.02]"
+                          className="group border-b border-slate-200 transition hover:bg-slate-50"
                         >
                           <td className="px-5 py-4">
                             <button
@@ -1633,13 +1633,13 @@ export default function Quotations() {
                               }
                               className="text-left"
                             >
-                              <p className="text-sm font-bold text-white transition group-hover:text-slate-300">
+                              <p className="text-sm font-bold text-slate-900 transition group-hover:text-slate-300">
                                 {
                                   quotation.quotationNumber
                                 }
                               </p>
 
-                              <p className="mt-1 text-xs text-slate-600">
+                              <p className="mt-1 text-xs text-slate-500">
                                 Issued{' '}
                                 {formatDate(
                                   quotation.issueDate
@@ -1650,8 +1650,8 @@ export default function Quotations() {
 
                           <td className="px-5 py-4">
                             <div className="flex items-center gap-3">
-                              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/[0.07] bg-white/[0.03]">
-                                <Building2 className="h-4 w-4 text-slate-500" />
+                              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-slate-50">
+                                <Building2 className="h-4 w-4 text-slate-600" />
                               </div>
 
                               <div>
@@ -1662,7 +1662,7 @@ export default function Quotations() {
                                     'No company'}
                                 </p>
 
-                                <p className="mt-0.5 max-w-[180px] truncate text-xs text-slate-600">
+                                <p className="mt-0.5 max-w-[180px] truncate text-xs text-slate-500">
                                   {getPersonName(
                                     contact
                                   )}
@@ -1672,7 +1672,7 @@ export default function Quotations() {
                           </td>
 
                           <td className="px-5 py-4">
-                            <p className="max-w-[200px] truncate text-sm text-slate-300">
+                            <p className="max-w-[200px] truncate text-sm text-slate-700">
                               {getName(
                                 quotation.opportunity
                               ) ||
@@ -1689,14 +1689,14 @@ export default function Quotations() {
                           </td>
 
                           <td className="px-5 py-4">
-                            <p className="text-sm font-bold text-white">
+                            <p className="text-sm font-bold text-slate-900">
                               {formatCurrency(
                                 quotation.grandTotal,
                                 quotation.currency
                               )}
                             </p>
 
-                            <p className="mt-0.5 text-[11px] text-slate-600">
+                            <p className="mt-0.5 text-[11px] text-slate-500">
                               {quotation.items
                                 ?.length ||
                                 0}{' '}
@@ -1705,8 +1705,8 @@ export default function Quotations() {
                           </td>
 
                           <td className="px-5 py-4">
-                            <div className="flex items-center gap-2 text-sm text-slate-400">
-                              <Calendar className="h-3.5 w-3.5 text-slate-600" />
+                            <div className="flex items-center gap-2 text-sm text-slate-600">
+                              <Calendar className="h-3.5 w-3.5 text-slate-500" />
 
                               {formatDate(
                                 quotation.validUntil
@@ -1723,7 +1723,7 @@ export default function Quotations() {
                                     quotation
                                   )
                                 }
-                                className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition hover:bg-white/[0.05] hover:text-white"
+                                className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
                                 title="View"
                               >
                                 <Eye className="h-4 w-4" />
@@ -1742,7 +1742,7 @@ export default function Quotations() {
                                 ].includes(
                                   quotation.status
                                 )}
-                                className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition hover:bg-white/[0.05] hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+                                className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-30"
                                 title="Edit"
                               >
                                 <Edit3 className="h-4 w-4" />
@@ -1767,7 +1767,7 @@ export default function Quotations() {
                                           )
                                   );
                                 }}
-                                className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition hover:bg-white/[0.05] hover:text-white"
+                                className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
                               >
                                 <MoreHorizontal className="h-4 w-4" />
                               </button>
@@ -1782,7 +1782,7 @@ export default function Quotations() {
                                   ) =>
                                     event.stopPropagation()
                                   }
-                                  className="absolute right-0 top-11 z-30 w-48 overflow-hidden rounded-xl border border-white/[0.08] bg-[#151922] p-1.5 shadow-2xl"
+                                  className="absolute right-0 top-11 z-30 w-48 overflow-hidden rounded-xl border border-slate-200 bg-white p-1.5 shadow-2xl"
                                 >
                                   {quotation.status !==
                                     'SENT' &&
@@ -1797,7 +1797,7 @@ export default function Quotations() {
                                             quotation
                                           )
                                         }
-                                        className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-xs font-medium text-slate-300 transition hover:bg-white/[0.05] hover:text-white"
+                                        className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-xs font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-900"
                                       >
                                         <Send className="h-3.5 w-3.5" />
                                         Send quotation
@@ -1817,7 +1817,7 @@ export default function Quotations() {
                                           quotation
                                         )
                                       }
-                                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-xs font-medium text-emerald-400 transition hover:bg-emerald-500/10"
+                                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-xs font-medium text-emerald-700 transition hover:bg-emerald-50"
                                     >
                                       <CheckCircle2 className="h-3.5 w-3.5" />
                                       Accept
@@ -1837,7 +1837,7 @@ export default function Quotations() {
                                           quotation
                                         )
                                       }
-                                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-xs font-medium text-red-400 transition hover:bg-red-500/10"
+                                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-xs font-medium text-red-700 transition hover:bg-red-50"
                                     >
                                       <XCircle className="h-3.5 w-3.5" />
                                       Reject
@@ -1855,7 +1855,7 @@ export default function Quotations() {
                                             quotation
                                           )
                                         }
-                                        className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-xs font-medium text-red-400 transition hover:bg-red-500/10"
+                                        className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-xs font-medium text-red-700 transition hover:bg-red-50"
                                       >
                                         <Trash2 className="h-3.5 w-3.5" />
                                         Delete
@@ -1878,8 +1878,8 @@ export default function Quotations() {
               PAGINATION
           ================================================= */}
 
-          <div className="flex flex-col gap-3 border-t border-white/[0.07] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-xs text-slate-600">
+          <div className="flex flex-col gap-3 border-t border-slate-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-xs text-slate-500">
               Showing{' '}
               {quotations.length
                 ? (page - 1) *
@@ -1907,12 +1907,12 @@ export default function Quotations() {
                       )
                   )
                 }
-                className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/[0.07] bg-white/[0.02] text-slate-500 transition hover:bg-white/[0.05] hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+                className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-30"
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
 
-              <div className="flex h-9 min-w-9 items-center justify-center rounded-lg bg-white/[0.07] px-3 text-xs font-bold text-white">
+              <div className="flex h-9 min-w-9 items-center justify-center rounded-lg bg-slate-100 px-3 text-xs font-bold text-slate-900">
                 {page}
               </div>
 
@@ -1930,7 +1930,7 @@ export default function Quotations() {
                       )
                   )
                 }
-                className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/[0.07] bg-white/[0.02] text-slate-500 transition hover:bg-white/[0.05] hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+                className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-30"
               >
                 <ChevronRight className="h-4 w-4" />
               </button>
@@ -1964,11 +1964,11 @@ export default function Quotations() {
 
           <div>
             <div className="mb-4">
-              <h3 className="text-sm font-bold text-white">
+              <h3 className="text-sm font-bold text-slate-900">
                 Quotation Information
               </h3>
 
-              <p className="mt-1 text-xs text-slate-600">
+              <p className="mt-1 text-xs text-slate-500">
                 Basic quotation and customer details.
               </p>
             </div>
@@ -2127,14 +2127,14 @@ export default function Quotations() {
 
           {/* ITEMS */}
 
-          <div className="rounded-2xl border border-white/[0.07] bg-white/[0.015]">
-            <div className="flex flex-col gap-3 border-b border-white/[0.07] p-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="rounded-2xl border border-slate-200 bg-slate-50">
+            <div className="flex flex-col gap-3 border-b border-slate-200 p-5 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h3 className="text-sm font-bold text-white">
+                <h3 className="text-sm font-bold text-slate-900">
                   Products & Services
                 </h3>
 
-                <p className="mt-1 text-xs text-slate-600">
+                <p className="mt-1 text-xs text-slate-500">
                   Add products, quantity, pricing, tax and discount.
                 </p>
               </div>
@@ -2142,7 +2142,7 @@ export default function Quotations() {
               <button
                 type="button"
                 onClick={addItem}
-                className="flex h-9 items-center justify-center gap-2 rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 text-xs font-bold text-slate-300 transition hover:bg-white/[0.06] hover:text-white"
+                className="flex h-9 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 text-xs font-bold text-slate-700 transition hover:bg-slate-100 hover:text-slate-900"
               >
                 <Plus className="h-3.5 w-3.5" />
                 Add Item
@@ -2160,15 +2160,15 @@ export default function Quotations() {
                   return (
                     <div
                       key={index}
-                      className="rounded-xl border border-white/[0.06] bg-[#10131a] p-4"
+                      className="rounded-xl border border-slate-200 bg-white p-4"
                     >
                       <div className="mb-4 flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/[0.05] text-xs font-bold text-slate-400">
+                          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-100 text-xs font-bold text-slate-600">
                             {index + 1}
                           </div>
 
-                          <span className="text-xs font-semibold text-slate-400">
+                          <span className="text-xs font-semibold text-slate-600">
                             Line Item
                           </span>
                         </div>
@@ -2182,7 +2182,7 @@ export default function Quotations() {
                                 index
                               )
                             }
-                            className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-600 transition hover:bg-red-500/10 hover:text-red-400"
+                            className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 transition hover:bg-red-50 hover:text-red-700"
                           >
                             <Trash2 className="h-3.5 w-3.5" />
                           </button>
@@ -2328,13 +2328,13 @@ export default function Quotations() {
                         />
                       </div>
 
-                      <div className="mt-4 grid grid-cols-2 gap-3 border-t border-white/[0.05] pt-4 sm:grid-cols-4">
+                      <div className="mt-4 grid grid-cols-2 gap-3 border-t border-slate-200 pt-4 sm:grid-cols-4">
                         <div>
-                          <p className="text-[10px] uppercase tracking-wider text-slate-600">
+                          <p className="text-[10px] uppercase tracking-wider text-slate-500">
                             Subtotal
                           </p>
 
-                          <p className="mt-1 text-sm font-semibold text-slate-300">
+                          <p className="mt-1 text-sm font-semibold text-slate-700">
                             {formatCurrency(
                               calculated.lineSubtotal,
                               form.currency
@@ -2343,11 +2343,11 @@ export default function Quotations() {
                         </div>
 
                         <div>
-                          <p className="text-[10px] uppercase tracking-wider text-slate-600">
+                          <p className="text-[10px] uppercase tracking-wider text-slate-500">
                             Discount
                           </p>
 
-                          <p className="mt-1 text-sm font-semibold text-red-400">
+                          <p className="mt-1 text-sm font-semibold text-red-700">
                             -
                             {formatCurrency(
                               calculated.discountAmount,
@@ -2357,11 +2357,11 @@ export default function Quotations() {
                         </div>
 
                         <div>
-                          <p className="text-[10px] uppercase tracking-wider text-slate-600">
+                          <p className="text-[10px] uppercase tracking-wider text-slate-500">
                             Tax
                           </p>
 
-                          <p className="mt-1 text-sm font-semibold text-slate-300">
+                          <p className="mt-1 text-sm font-semibold text-slate-700">
                             {formatCurrency(
                               calculated.taxAmount,
                               form.currency
@@ -2370,11 +2370,11 @@ export default function Quotations() {
                         </div>
 
                         <div>
-                          <p className="text-[10px] uppercase tracking-wider text-slate-600">
+                          <p className="text-[10px] uppercase tracking-wider text-slate-500">
                             Line Total
                           </p>
 
-                          <p className="mt-1 text-sm font-bold text-white">
+                          <p className="mt-1 text-sm font-bold text-slate-900">
                             {formatCurrency(
                               calculated.lineTotal,
                               form.currency
@@ -2390,14 +2390,14 @@ export default function Quotations() {
 
             {/* TOTALS */}
 
-            <div className="border-t border-white/[0.07] bg-white/[0.015] p-5">
+            <div className="border-t border-slate-200 bg-slate-50 p-5">
               <div className="ml-auto max-w-md space-y-3">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-slate-500">
+                  <span className="text-slate-600">
                     Subtotal
                   </span>
 
-                  <span className="font-semibold text-slate-300">
+                  <span className="font-semibold text-slate-700">
                     {formatCurrency(
                       formTotals.subtotal,
                       form.currency
@@ -2406,11 +2406,11 @@ export default function Quotations() {
                 </div>
 
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-slate-500">
+                  <span className="text-slate-600">
                     Discount
                   </span>
 
-                  <span className="font-semibold text-red-400">
+                  <span className="font-semibold text-red-700">
                     -
                     {formatCurrency(
                       formTotals.discountTotal,
@@ -2420,11 +2420,11 @@ export default function Quotations() {
                 </div>
 
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-slate-500">
+                  <span className="text-slate-600">
                     Tax
                   </span>
 
-                  <span className="font-semibold text-slate-300">
+                  <span className="font-semibold text-slate-700">
                     {formatCurrency(
                       formTotals.taxTotal,
                       form.currency
@@ -2432,12 +2432,12 @@ export default function Quotations() {
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between border-t border-white/[0.07] pt-3">
-                  <span className="text-sm font-bold text-white">
+                <div className="flex items-center justify-between border-t border-slate-200 pt-3">
+                  <span className="text-sm font-bold text-slate-900">
                     Grand Total
                   </span>
 
-                  <span className="text-xl font-bold text-white">
+                  <span className="text-xl font-bold text-slate-900">
                     {formatCurrency(
                       formTotals.grandTotal,
                       form.currency
@@ -2452,14 +2452,14 @@ export default function Quotations() {
 
           <div>
             <div className="mb-4">
-              <h3 className="text-sm font-bold text-white">
+              <h3 className="text-sm font-bold text-slate-900">
                 Additional Details
               </h3>
             </div>
 
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
               <div>
-                <label className="mb-2 block text-xs font-semibold text-slate-400">
+                <label className="mb-2 block text-xs font-semibold text-slate-600">
                   Notes
                 </label>
 
@@ -2472,13 +2472,13 @@ export default function Quotations() {
                     )
                   }
                   rows={4}
-                  className="w-full resize-none rounded-xl border border-white/[0.08] bg-[#11141b] p-3.5 text-sm text-white outline-none placeholder:text-slate-600 focus:border-white/20"
+                  className="w-full resize-none rounded-xl border border-slate-300 bg-white p-3.5 text-sm text-slate-900 outline-none placeholder:text-slate-500 focus:border-brand-500 transition hover:border-slate-400 focus:ring-4 focus:ring-brand-500/15 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500"
                   placeholder="Quotation notes..."
                 />
               </div>
 
               <div>
-                <label className="mb-2 block text-xs font-semibold text-slate-400">
+                <label className="mb-2 block text-xs font-semibold text-slate-600">
                   Terms & Conditions
                 </label>
 
@@ -2493,13 +2493,13 @@ export default function Quotations() {
                     )
                   }
                   rows={4}
-                  className="w-full resize-none rounded-xl border border-white/[0.08] bg-[#11141b] p-3.5 text-sm text-white outline-none placeholder:text-slate-600 focus:border-white/20"
+                  className="w-full resize-none rounded-xl border border-slate-300 bg-white p-3.5 text-sm text-slate-900 outline-none placeholder:text-slate-500 focus:border-brand-500 transition hover:border-slate-400 focus:ring-4 focus:ring-brand-500/15 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500"
                   placeholder="Payment terms, delivery terms..."
                 />
               </div>
 
               <div>
-                <label className="mb-2 block text-xs font-semibold text-slate-400">
+                <label className="mb-2 block text-xs font-semibold text-slate-600">
                   Customer Notes
                 </label>
 
@@ -2514,13 +2514,13 @@ export default function Quotations() {
                     )
                   }
                   rows={3}
-                  className="w-full resize-none rounded-xl border border-white/[0.08] bg-[#11141b] p-3.5 text-sm text-white outline-none placeholder:text-slate-600 focus:border-white/20"
+                  className="w-full resize-none rounded-xl border border-slate-300 bg-white p-3.5 text-sm text-slate-900 outline-none placeholder:text-slate-500 focus:border-brand-500 transition hover:border-slate-400 focus:ring-4 focus:ring-brand-500/15 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500"
                   placeholder="Customer-facing notes..."
                 />
               </div>
 
               <div>
-                <label className="mb-2 block text-xs font-semibold text-slate-400">
+                <label className="mb-2 block text-xs font-semibold text-slate-600">
                   Internal Notes
                 </label>
 
@@ -2535,7 +2535,7 @@ export default function Quotations() {
                     )
                   }
                   rows={3}
-                  className="w-full resize-none rounded-xl border border-white/[0.08] bg-[#11141b] p-3.5 text-sm text-white outline-none placeholder:text-slate-600 focus:border-white/20"
+                  className="w-full resize-none rounded-xl border border-slate-300 bg-white p-3.5 text-sm text-slate-900 outline-none placeholder:text-slate-500 focus:border-brand-500 transition hover:border-slate-400 focus:ring-4 focus:ring-brand-500/15 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500"
                   placeholder="Internal sales notes..."
                 />
               </div>
@@ -2572,11 +2572,11 @@ export default function Quotations() {
 
           {/* FOOTER */}
 
-          <div className="flex flex-col-reverse gap-3 border-t border-white/[0.07] pt-5 sm:flex-row sm:justify-end">
+          <div className="flex flex-col-reverse gap-3 border-t border-slate-200 pt-5 sm:flex-row sm:justify-end">
             <button
               type="button"
               onClick={closeModal}
-              className="h-11 rounded-xl border border-white/[0.08] bg-white/[0.03] px-5 text-sm font-semibold text-slate-300 transition hover:bg-white/[0.06] hover:text-white"
+              className="h-11 rounded-xl border border-slate-200 bg-slate-50 px-5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 hover:text-slate-900"
             >
               Cancel
             </button>
@@ -2621,21 +2621,21 @@ export default function Quotations() {
           <div className="space-y-6 p-6">
             {/* TOP */}
 
-            <div className="flex flex-col gap-4 rounded-2xl border border-white/[0.07] bg-white/[0.02] p-5 md:flex-row md:items-start md:justify-between">
+            <div className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-5 md:flex-row md:items-start md:justify-between">
               <div>
                 <div className="flex items-center gap-3">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/[0.07] bg-white/[0.03]">
-                    <FileText className="h-5 w-5 text-slate-400" />
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 bg-slate-50">
+                    <FileText className="h-5 w-5 text-slate-600" />
                   </div>
 
                   <div>
-                    <h3 className="text-lg font-bold text-white">
+                    <h3 className="text-lg font-bold text-slate-900">
                       {
                         selectedQuotation.quotationNumber
                       }
                     </h3>
 
-                    <p className="mt-1 text-xs text-slate-600">
+                    <p className="mt-1 text-xs text-slate-500">
                       Created{' '}
                       {formatDate(
                         selectedQuotation.createdAt
@@ -2655,48 +2655,48 @@ export default function Quotations() {
             {/* CUSTOMER */}
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-              <div className="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-4">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                 <div className="mb-3 flex items-center gap-2">
-                  <Building2 className="h-4 w-4 text-slate-600" />
+                  <Building2 className="h-4 w-4 text-slate-500" />
 
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-600">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
                     Company
                   </span>
                 </div>
 
-                <p className="text-sm font-semibold text-white">
+                <p className="text-sm font-semibold text-slate-900">
                   {getName(
                     selectedQuotation.company
                   ) || '—'}
                 </p>
               </div>
 
-              <div className="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-4">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                 <div className="mb-3 flex items-center gap-2">
-                  <User className="h-4 w-4 text-slate-600" />
+                  <User className="h-4 w-4 text-slate-500" />
 
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-600">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
                     Contact
                   </span>
                 </div>
 
-                <p className="text-sm font-semibold text-white">
+                <p className="text-sm font-semibold text-slate-900">
                   {getPersonName(
                     selectedQuotation.contact
                   ) || '—'}
                 </p>
               </div>
 
-              <div className="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-4">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                 <div className="mb-3 flex items-center gap-2">
-                  <ClipboardList className="h-4 w-4 text-slate-600" />
+                  <ClipboardList className="h-4 w-4 text-slate-500" />
 
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-600">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
                     Opportunity
                   </span>
                 </div>
 
-                <p className="text-sm font-semibold text-white">
+                <p className="text-sm font-semibold text-slate-900">
                   {getName(
                     selectedQuotation.opportunity
                   ) || '—'}
@@ -2706,9 +2706,9 @@ export default function Quotations() {
 
             {/* ITEMS */}
 
-            <div className="overflow-hidden rounded-2xl border border-white/[0.07]">
-              <div className="border-b border-white/[0.07] bg-white/[0.02] px-5 py-4">
-                <h3 className="text-sm font-bold text-white">
+            <div className="overflow-hidden rounded-2xl border border-slate-200">
+              <div className="border-b border-slate-200 bg-slate-50 px-5 py-4">
+                <h3 className="text-sm font-bold text-slate-900">
                   Quotation Items
                 </h3>
               </div>
@@ -2716,7 +2716,7 @@ export default function Quotations() {
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[700px]">
                   <thead>
-                    <tr className="border-b border-white/[0.07]">
+                    <tr className="border-b border-slate-200">
                       <th className="px-5 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-slate-600">
                         Product
                       </th>
@@ -2755,10 +2755,10 @@ export default function Quotations() {
                             key={
                               index
                             }
-                            className="border-b border-white/[0.05]"
+                            className="border-b border-slate-200"
                           >
                             <td className="px-5 py-4">
-                              <p className="text-sm font-semibold text-white">
+                              <p className="text-sm font-semibold text-slate-900">
                                 {getName(
                                   item.product
                                 ) ||
@@ -2767,7 +2767,7 @@ export default function Quotations() {
                               </p>
 
                               {item.description && (
-                                <p className="mt-1 text-xs text-slate-600">
+                                <p className="mt-1 text-xs text-slate-500">
                                   {
                                     item.description
                                   }
@@ -2775,27 +2775,27 @@ export default function Quotations() {
                               )}
                             </td>
 
-                            <td className="px-5 py-4 text-right text-sm text-slate-400">
+                            <td className="px-5 py-4 text-right text-sm text-slate-600">
                               {
                                 item.quantity
                               }
                             </td>
 
-                            <td className="px-5 py-4 text-right text-sm text-slate-400">
+                            <td className="px-5 py-4 text-right text-sm text-slate-600">
                               {formatCurrency(
                                 item.unitPrice,
                                 selectedQuotation.currency
                               )}
                             </td>
 
-                            <td className="px-5 py-4 text-right text-sm text-slate-400">
+                            <td className="px-5 py-4 text-right text-sm text-slate-600">
                               {
                                 item.taxRate
                               }
                               %
                             </td>
 
-                            <td className="px-5 py-4 text-right text-sm font-bold text-white">
+                            <td className="px-5 py-4 text-right text-sm font-bold text-slate-900">
                               {formatCurrency(
                                 calculated.lineTotal,
                                 selectedQuotation.currency
@@ -2813,14 +2813,14 @@ export default function Quotations() {
             {/* TOTAL */}
 
             <div className="flex justify-end">
-              <div className="w-full max-w-sm rounded-2xl border border-white/[0.07] bg-white/[0.02] p-5">
+              <div className="w-full max-w-sm rounded-2xl border border-slate-200 bg-slate-50 p-5">
                 <div className="space-y-3">
                   <div className="flex justify-between text-sm">
-                    <span className="text-slate-500">
+                    <span className="text-slate-600">
                       Subtotal
                     </span>
 
-                    <span className="text-slate-300">
+                    <span className="text-slate-700">
                       {formatCurrency(
                         selectedQuotation.subtotal,
                         selectedQuotation.currency
@@ -2829,11 +2829,11 @@ export default function Quotations() {
                   </div>
 
                   <div className="flex justify-between text-sm">
-                    <span className="text-slate-500">
+                    <span className="text-slate-600">
                       Discount
                     </span>
 
-                    <span className="text-red-400">
+                    <span className="text-red-700">
                       -
                       {formatCurrency(
                         selectedQuotation.discountTotal,
@@ -2843,11 +2843,11 @@ export default function Quotations() {
                   </div>
 
                   <div className="flex justify-between text-sm">
-                    <span className="text-slate-500">
+                    <span className="text-slate-600">
                       Tax
                     </span>
 
-                    <span className="text-slate-300">
+                    <span className="text-slate-700">
                       {formatCurrency(
                         selectedQuotation.taxTotal,
                         selectedQuotation.currency
@@ -2855,13 +2855,13 @@ export default function Quotations() {
                     </span>
                   </div>
 
-                  <div className="border-t border-white/[0.07] pt-3">
+                  <div className="border-t border-slate-200 pt-3">
                     <div className="flex items-center justify-between">
-                      <span className="font-bold text-white">
+                      <span className="font-bold text-slate-900">
                         Grand Total
                       </span>
 
-                      <span className="text-xl font-bold text-white">
+                      <span className="text-xl font-bold text-slate-900">
                         {formatCurrency(
                           selectedQuotation.grandTotal,
                           selectedQuotation.currency
@@ -2876,36 +2876,36 @@ export default function Quotations() {
             {/* DATES */}
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-              <div className="rounded-xl border border-white/[0.07] bg-white/[0.02] p-4">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-600">
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
                   Issue Date
                 </p>
 
-                <p className="mt-2 text-sm font-semibold text-white">
+                <p className="mt-2 text-sm font-semibold text-slate-900">
                   {formatDate(
                     selectedQuotation.issueDate
                   )}
                 </p>
               </div>
 
-              <div className="rounded-xl border border-white/[0.07] bg-white/[0.02] p-4">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-600">
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
                   Valid Until
                 </p>
 
-                <p className="mt-2 text-sm font-semibold text-white">
+                <p className="mt-2 text-sm font-semibold text-slate-900">
                   {formatDate(
                     selectedQuotation.validUntil
                   )}
                 </p>
               </div>
 
-              <div className="rounded-xl border border-white/[0.07] bg-white/[0.02] p-4">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-600">
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
                   Currency
                 </p>
 
-                <p className="mt-2 text-sm font-semibold text-white">
+                <p className="mt-2 text-sm font-semibold text-slate-900">
                   {selectedQuotation.currency ||
                     'INR'}
                 </p>
@@ -2919,12 +2919,12 @@ export default function Quotations() {
               selectedQuotation.customerNotes) && (
               <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                 {selectedQuotation.notes && (
-                  <div className="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-5">
-                    <p className="text-xs font-bold uppercase tracking-wider text-slate-600">
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+                    <p className="text-xs font-bold uppercase tracking-wider text-slate-500">
                       Notes
                     </p>
 
-                    <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-slate-400">
+                    <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-slate-600">
                       {
                         selectedQuotation.notes
                       }
@@ -2933,12 +2933,12 @@ export default function Quotations() {
                 )}
 
                 {selectedQuotation.termsAndConditions && (
-                  <div className="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-5">
-                    <p className="text-xs font-bold uppercase tracking-wider text-slate-600">
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+                    <p className="text-xs font-bold uppercase tracking-wider text-slate-500">
                       Terms & Conditions
                     </p>
 
-                    <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-slate-400">
+                    <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-slate-600">
                       {
                         selectedQuotation.termsAndConditions
                       }
@@ -2950,7 +2950,7 @@ export default function Quotations() {
 
             {/* ACTIONS */}
 
-            <div className="flex flex-wrap justify-end gap-2 border-t border-white/[0.07] pt-5">
+            <div className="flex flex-wrap justify-end gap-2 border-t border-slate-200 pt-5">
               {[
                 'DRAFT',
                 'VIEWED',
@@ -2964,7 +2964,7 @@ export default function Quotations() {
                       selectedQuotation
                     )
                   }
-                  className="flex h-10 items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 text-xs font-bold text-emerald-400"
+                  className="flex h-10 items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 text-xs font-bold text-emerald-700"
                 >
                   <CheckCircle2 className="h-4 w-4" />
                   Accept
@@ -2984,7 +2984,7 @@ export default function Quotations() {
                       selectedQuotation
                     )
                   }
-                  className="flex h-10 items-center gap-2 rounded-xl border border-red-500/20 bg-red-500/10 px-4 text-xs font-bold text-red-400"
+                  className="flex h-10 items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 text-xs font-bold text-red-700"
                 >
                   <XCircle className="h-4 w-4" />
                   Reject
@@ -3025,16 +3025,16 @@ export default function Quotations() {
           onSubmit={handleReject}
           className="space-y-5 p-6"
         >
-          <div className="rounded-xl border border-red-500/20 bg-red-500/[0.05] p-4">
+          <div className="rounded-xl border border-red-200 bg-red-500/[0.05] p-4">
             <div className="flex gap-3">
-              <XCircle className="h-5 w-5 shrink-0 text-red-400" />
+              <XCircle className="h-5 w-5 shrink-0 text-red-700" />
 
               <div>
-                <p className="text-sm font-semibold text-red-300">
+                <p className="text-sm font-semibold text-red-700">
                   Reject this quotation?
                 </p>
 
-                <p className="mt-1 text-xs leading-5 text-red-400/70">
+                <p className="mt-1 text-xs leading-5 text-red-700">
                   This will mark the quotation as rejected.
                 </p>
               </div>
@@ -3042,7 +3042,7 @@ export default function Quotations() {
           </div>
 
           <div>
-            <label className="mb-2 block text-xs font-semibold text-slate-400">
+            <label className="mb-2 block text-xs font-semibold text-slate-600">
               Rejection Reason
             </label>
 
@@ -3055,7 +3055,7 @@ export default function Quotations() {
               }
               rows={4}
               placeholder="Enter rejection reason..."
-              className="w-full resize-none rounded-xl border border-white/[0.08] bg-[#11141b] p-3.5 text-sm text-white outline-none placeholder:text-slate-600 focus:border-white/20"
+              className="w-full resize-none rounded-xl border border-slate-300 bg-white p-3.5 text-sm text-slate-900 outline-none placeholder:text-slate-500 focus:border-brand-500 transition hover:border-slate-400 focus:ring-4 focus:ring-brand-500/15 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500"
             />
           </div>
 
@@ -3063,7 +3063,7 @@ export default function Quotations() {
             <button
               type="button"
               onClick={closeModal}
-              className="h-10 rounded-xl border border-white/[0.08] px-4 text-xs font-bold text-slate-400 hover:text-white"
+              className="h-10 rounded-xl border border-slate-200 px-4 text-xs font-bold text-slate-600 hover:text-slate-900"
             >
               Cancel
             </button>

@@ -916,7 +916,7 @@ export default function Opportunities() {
   ======================================================= */
 
   return (
-    <div className="min-h-screen bg-[#f7f8fc] text-slate-900">
+    <div className="min-h-screen bg-surface text-slate-900">
       {/* ===================================================
           HEADER
       =================================================== */}
@@ -1104,7 +1104,7 @@ export default function Opportunities() {
                       {titleCase(item)}
                     </span>
 
-                    <span className="text-xs font-bold text-slate-400">
+                    <span className="text-xs font-bold text-slate-500">
                       {count}
                     </span>
                   </div>
@@ -1137,7 +1137,7 @@ export default function Opportunities() {
         <div className="mt-6 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
           <div className="flex flex-col gap-3 xl:flex-row xl:items-center">
             <div className="relative flex-1">
-              <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+              <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-500" />
 
               <input
                 value={search}
@@ -1146,7 +1146,7 @@ export default function Opportunities() {
                   setPage(1);
                 }}
                 placeholder="Search opportunities, descriptions or notes..."
-                className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 pl-12 pr-4 text-sm outline-none transition focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-50"
+                className="h-12 w-full rounded-xl border border-slate-300 bg-slate-50 pl-12 pr-4 text-sm outline-none transition focus:border-brand-500 focus:bg-white focus:ring-4 focus:ring-brand-500/15 text-slate-900 placeholder:text-slate-500 hover:border-slate-400 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500"
               />
             </div>
 
@@ -1178,7 +1178,7 @@ export default function Opportunities() {
                   setSortOrder(order);
                   setPage(1);
                 }}
-                className="bg-transparent text-sm font-medium text-slate-700 outline-none"
+                className="bg-transparent text-sm font-medium text-slate-700 outline-none placeholder:text-slate-500 transition focus:ring-4 focus:ring-brand-500/15 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500"
               >
                 <option value="createdAt:desc">
                   Newest
@@ -1360,7 +1360,7 @@ export default function Opportunities() {
                       setLimit(Number(e.target.value));
                       setPage(1);
                     }}
-                    className="rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm outline-none"
+                    className="rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-sm outline-none text-slate-900 placeholder:text-slate-500 transition hover:border-slate-400 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500"
                   >
                     <option value={10}>10</option>
                     <option value={20}>20</option>
@@ -1662,7 +1662,7 @@ export default function Opportunities() {
                 <div className="rounded-2xl border border-slate-200">
                   <div className="grid grid-cols-1 gap-3 bg-slate-50 p-4 md:grid-cols-6">
                     <div className="md:col-span-2">
-                      <label className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+                      <label className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-600">
                         Product
                       </label>
 
@@ -1674,7 +1674,7 @@ export default function Opportunities() {
                             product: e.target.value,
                           }))
                         }
-                        className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none"
+                        className="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none text-slate-900 placeholder:text-slate-500 transition hover:border-slate-400 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500"
                       >
                         <option value="">
                           Select Product
@@ -1756,13 +1756,13 @@ export default function Opportunities() {
                               )}
                             </p>
 
-                            <p className="mt-1 text-xs text-slate-400">
+                            <p className="mt-1 text-xs text-slate-500">
                               Product ID: {item.product}
                             </p>
                           </div>
 
                           <div>
-                            <p className="text-xs text-slate-400">
+                            <p className="text-xs text-slate-500">
                               Quantity
                             </p>
                             <p className="font-semibold">
@@ -1771,7 +1771,7 @@ export default function Opportunities() {
                           </div>
 
                           <div>
-                            <p className="text-xs text-slate-400">
+                            <p className="text-xs text-slate-500">
                               Price
                             </p>
                             <p className="font-semibold">
@@ -1783,7 +1783,7 @@ export default function Opportunities() {
                           </div>
 
                           <div>
-                            <p className="text-xs text-slate-400">
+                            <p className="text-xs text-slate-500">
                               Discount
                             </p>
                             <p className="font-semibold">
@@ -1792,7 +1792,7 @@ export default function Opportunities() {
                           </div>
 
                           <div>
-                            <p className="text-xs text-slate-400">
+                            <p className="text-xs text-slate-500">
                               Tax
                             </p>
                             <p className="font-semibold">
@@ -1802,7 +1802,7 @@ export default function Opportunities() {
 
                           <div className="flex items-center justify-between gap-3">
                             <div>
-                              <p className="text-xs text-slate-400">
+                              <p className="text-xs text-slate-500">
                                 Total
                               </p>
                               <p className="font-bold text-emerald-600">
@@ -1828,7 +1828,7 @@ export default function Opportunities() {
 
                       <div className="flex items-center justify-end bg-slate-50 px-4 py-4">
                         <div className="text-right">
-                          <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                             Products Total
                           </p>
                           <p className="mt-1 text-xl font-bold text-slate-900">
@@ -1841,7 +1841,7 @@ export default function Opportunities() {
                       </div>
                     </div>
                   ) : (
-                    <div className="px-4 py-8 text-center text-sm text-slate-400">
+                    <div className="px-4 py-8 text-center text-sm text-slate-500">
                       No products added yet.
                     </div>
                   )}
@@ -2105,7 +2105,7 @@ function StatCard({
             {value}
           </p>
 
-          <p className="mt-2 text-xs text-slate-400">
+          <p className="mt-2 text-xs text-slate-500">
             {subtitle}
           </p>
         </div>
@@ -2126,7 +2126,7 @@ function StatCard({
 
 function TableHead({ children }) {
   return (
-    <th className="whitespace-nowrap px-4 py-4 text-left text-[11px] font-bold uppercase tracking-wider text-slate-500">
+    <th className="whitespace-nowrap px-4 py-4 text-left text-[11px] font-bold uppercase tracking-wider text-slate-600">
       {children}
     </th>
   );
@@ -2158,7 +2158,7 @@ function OpportunityRow({
             {opportunity.name}
           </p>
 
-          <p className="mt-1 max-w-[220px] truncate text-xs text-slate-400">
+          <p className="mt-1 max-w-[220px] truncate text-xs text-slate-500">
             ID: {opportunity._id}
           </p>
         </button>
@@ -2183,7 +2183,7 @@ function OpportunityRow({
           </p>
 
           {opportunity.contact?.email && (
-            <p className="mt-1 text-xs text-slate-400">
+            <p className="mt-1 text-xs text-slate-500">
               {opportunity.contact.email}
             </p>
           )}
@@ -2211,7 +2211,7 @@ function OpportunityRow({
             )}
           </p>
 
-          <p className="mt-1 text-xs text-slate-400">
+          <p className="mt-1 text-xs text-slate-500">
             {opportunity.currency || "INR"}
           </p>
         </div>
@@ -2291,14 +2291,14 @@ function OpportunityRow({
 
       <td className="px-4 py-4">
         <div className="flex items-center gap-2 whitespace-nowrap text-sm text-slate-600">
-          <Calendar className="h-4 w-4 text-slate-400" />
+          <Calendar className="h-4 w-4 text-slate-500" />
           {formatDate(opportunity.expectedCloseDate)}
         </div>
       </td>
 
       <td className="px-4 py-4">
         <div className="flex items-center gap-2 whitespace-nowrap text-sm text-slate-600">
-          <Clock3 className="h-4 w-4 text-slate-400" />
+          <Clock3 className="h-4 w-4 text-slate-500" />
           {formatDate(opportunity.nextFollowUpDate)}
         </div>
       </td>
@@ -2309,7 +2309,7 @@ function OpportunityRow({
             {titleCase(opportunity.sourceType || "OTHER")}
           </p>
 
-          <p className="mt-1 max-w-[130px] truncate text-xs text-slate-400">
+          <p className="mt-1 max-w-[130px] truncate text-xs text-slate-500">
             {opportunity.source || "—"}
           </p>
         </div>
@@ -2694,22 +2694,22 @@ function DetailsDrawer({
                   <table className="min-w-full">
                     <thead className="bg-slate-50">
                       <tr>
-                        <th className="px-4 py-3 text-left text-xs font-bold text-slate-500">
+                        <th className="px-4 py-3 text-left text-xs font-bold text-slate-600">
                           Product
                         </th>
-                        <th className="px-4 py-3 text-right text-xs font-bold text-slate-500">
+                        <th className="px-4 py-3 text-right text-xs font-bold text-slate-600">
                           Qty
                         </th>
-                        <th className="px-4 py-3 text-right text-xs font-bold text-slate-500">
+                        <th className="px-4 py-3 text-right text-xs font-bold text-slate-600">
                           Price
                         </th>
-                        <th className="px-4 py-3 text-right text-xs font-bold text-slate-500">
+                        <th className="px-4 py-3 text-right text-xs font-bold text-slate-600">
                           Discount
                         </th>
-                        <th className="px-4 py-3 text-right text-xs font-bold text-slate-500">
+                        <th className="px-4 py-3 text-right text-xs font-bold text-slate-600">
                           Tax
                         </th>
-                        <th className="px-4 py-3 text-right text-xs font-bold text-slate-500">
+                        <th className="px-4 py-3 text-right text-xs font-bold text-slate-600">
                           Total
                         </th>
                       </tr>
@@ -2778,7 +2778,7 @@ function DetailsDrawer({
                   </span>
                 ))
               ) : (
-                <span className="text-sm text-slate-400">
+                <span className="text-sm text-slate-500">
                   No tags
                 </span>
               )}
@@ -2827,7 +2827,7 @@ function DetailsDrawer({
 function MiniMetric({ label, value }) {
   return (
     <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-      <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">
+      <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">
         {label}
       </p>
 
@@ -2879,7 +2879,7 @@ function DetailGrid({ children }) {
 function DetailItem({ label, value }) {
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-3">
-      <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">
+      <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">
         {label}
       </p>
 
@@ -2948,7 +2948,7 @@ function InputField({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3.5 text-sm outline-none transition placeholder:text-slate-400 focus:border-indigo-400 focus:ring-4 focus:ring-indigo-50"
+        className="h-11 w-full rounded-xl border border-slate-300 bg-white px-3.5 text-sm outline-none transition placeholder:text-slate-500 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15 hover:border-slate-400 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500"
       />
     </div>
   );
@@ -2981,7 +2981,7 @@ function TextareaField({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full resize-none rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-indigo-400 focus:ring-4 focus:ring-indigo-50"
+        className="w-full resize-none rounded-xl border border-slate-300 bg-white px-3.5 py-3 text-sm outline-none transition placeholder:text-slate-500 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15 hover:border-slate-400 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500"
       />
     </div>
   );
@@ -3012,7 +3012,7 @@ function SelectField({
         <select
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="h-11 w-full appearance-none rounded-xl border border-slate-200 bg-white px-3.5 pr-9 text-sm outline-none transition focus:border-indigo-400 focus:ring-4 focus:ring-indigo-50"
+          className="h-11 w-full appearance-none rounded-xl border border-slate-300 bg-white px-3.5 pr-9 text-sm outline-none transition focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15 text-slate-900 placeholder:text-slate-500 hover:border-slate-400 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500"
         >
           <option value="">Select {label}</option>
 
@@ -3036,7 +3036,7 @@ function SelectField({
           })}
         </select>
 
-        <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+        <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
       </div>
     </div>
   );
@@ -3054,14 +3054,14 @@ function FilterSelect({
 }) {
   return (
     <div>
-      <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-400">
+      <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-600">
         {label}
       </label>
 
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium outline-none focus:border-indigo-400"
+        className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm font-medium outline-none focus:border-brand-500 text-slate-900 placeholder:text-slate-500 transition hover:border-slate-400 focus:ring-4 focus:ring-brand-500/15 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500"
       >
         <option value="">All {label}</option>
 
@@ -3100,7 +3100,7 @@ function SmallInput({
 }) {
   return (
     <div>
-      <label className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+      <label className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-600">
         {label}
       </label>
 
@@ -3108,7 +3108,7 @@ function SmallInput({
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-indigo-400"
+        className="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none focus:border-brand-500 text-slate-900 placeholder:text-slate-500 transition hover:border-slate-400 focus:ring-4 focus:ring-brand-500/15 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500"
       />
     </div>
   );
@@ -3182,7 +3182,7 @@ function LoadingState() {
         Loading opportunities...
       </p>
 
-      <p className="mt-1 text-sm text-slate-400">
+      <p className="mt-1 text-sm text-slate-500">
         Fetching your sales pipeline.
       </p>
     </div>

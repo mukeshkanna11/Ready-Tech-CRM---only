@@ -18,7 +18,11 @@ import Products from "./pages/Products";
 import Opportunities from "./pages/Opportunities";
 import Quotations from "./pages/Quotations";
 import SalesOrders from "./pages/SalesOrders";
-
+import Invoices from "./pages/Invoices";
+import Payments from "./pages/Payments";
+import Automations from "./pages/Automations";
+import Activities from "./pages/Activities";
+import Tasks from "./pages/Tasks"
 // ============================================================
 // AUTH TOKEN HELPER
 // ============================================================
@@ -162,6 +166,23 @@ function App() {
             element={<Products />}
           />
 
+          <Route
+            path="/automations"
+            element={<Automations />}
+          />
+
+
+<Route
+            path="/activities"
+            element={<Activities />}
+          />
+
+<Route
+            path="/tasks"
+            element={<Tasks />}
+          />
+
+
           {/* ====================================================
               SALES
           ==================================================== */}
@@ -179,6 +200,16 @@ function App() {
           <Route
             path="/sales-orders"
             element={<SalesOrders />}
+          />
+
+          <Route
+            path="/invoices"
+            element={<Invoices />}
+          />
+
+          <Route
+            path="/payments"
+            element={<Payments />}
           />
 
         </Route>
