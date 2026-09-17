@@ -465,6 +465,10 @@ export default function MainLayout() {
             WORKSPACE
         ================================================== */}
 
+        {/* Scrollable region: nav + status */}
+
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-6">
+
         <div
           className={`pt-6 ${
             collapsed
@@ -644,18 +648,14 @@ export default function MainLayout() {
           )}
         </div>
 
-        {/* ==================================================
-            SPACER
-        ================================================== */}
-
-        <div className="flex-1" />
+        </div>
 
         {/* ==================================================
             USER PROFILE
         ================================================== */}
 
         <div
-          className={`border-t border-white/[0.06] ${
+          className={`shrink-0 border-t border-white/[0.06] ${
             collapsed
               ? "p-3"
               : "p-4"
