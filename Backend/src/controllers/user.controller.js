@@ -5,6 +5,8 @@ const asyncHandler = require('../utils/asyncHandler');
 const { sendSuccess } = require('../utils/apiResponse');
 const { getPagination, buildPagination } = require('../utils/pagination');
 
+const isSelf = (req) => String(req.user?._id) === String(req.params.id);
+
 exports.list = asyncHandler(async (req, res) => {
   const { page, limit, skip } = getPagination(req.query);
   const filter = {};
@@ -55,6 +57,10 @@ exports.update = asyncHandler(async (req, res) => {
   const allowed = ['name', 'phone', 'avatar', 'role', 'isActive'];
   const payload = Object.fromEntries(Object.entries(req.body).filter(([key]) => allowed.includes(key)));
 
+  if (payload.isActive === false && isSelf(req)) {
+    throw new ApiError(400, 'You cannot deactivate your own account', 'SELF_DEACTIVATE');
+  }
+
   if (payload.role) {
     const role = await Role.findById(payload.role);
     if (!role) throw new ApiError(400, 'Invalid role', 'INVALID_ROLE');
@@ -70,6 +76,10 @@ exports.update = asyncHandler(async (req, res) => {
 });
 
 exports.remove = asyncHandler(async (req, res) => {
+  if (isSelf(req)) {
+    throw new ApiError(400, 'You cannot delete your own account', 'SELF_DELETE');
+  }
+
   const user = await User.findByIdAndDelete(req.params.id);
   if (!user) throw new ApiError(404, 'User not found', 'USER_NOT_FOUND');
   sendSuccess(res, null, 'User deleted successfully');

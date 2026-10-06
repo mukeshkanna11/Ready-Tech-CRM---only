@@ -9,6 +9,9 @@ const {
 const controller =
   require('../controllers/lead.controller');
 
+const sourceController =
+  require('../controllers/leadSource.controller');
+
 const router =
   express.Router();
 
@@ -19,6 +22,25 @@ const router =
 
 router.use(authenticate);
 
+
+// ======================================================
+// LEAD SOURCES (before /:id)
+// ======================================================
+
+// GET    /api/v1/leads/sources
+// POST   /api/v1/leads/sources
+// PUT    /api/v1/leads/sources/:id
+// DELETE /api/v1/leads/sources/:id
+
+router
+  .route('/sources')
+  .get(sourceController.list)
+  .post(sourceController.create);
+
+router
+  .route('/sources/:id')
+  .put(sourceController.update)
+  .delete(sourceController.remove);
 
 // ======================================================
 // LEAD CRUD

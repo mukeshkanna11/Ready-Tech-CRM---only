@@ -35,6 +35,7 @@ import {
   Users,
   X,
 } from "lucide-react";
+import RecordActivityPanel from "../components/crm/RecordActivityPanel";
 
 /* =========================================================
    API
@@ -1647,6 +1648,13 @@ function CompanyDetails({
             Delete Company
           </button>
         </div>
+      </div>
+      <div className="mt-6">
+        <RecordActivityPanel
+          key={company._id}
+          recordType="company"
+          recordId={company._id}
+        />
       </div>
     </Modal>
   );

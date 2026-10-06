@@ -88,6 +88,7 @@ const ACTIVITY_TYPES = Object.freeze([
   'DEMO',
   'FOLLOW_UP',
   'WHATSAPP',
+  'SMS',
   'OTHER',
 ]);
 

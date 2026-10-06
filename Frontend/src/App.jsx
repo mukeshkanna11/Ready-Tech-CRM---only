@@ -10,6 +10,7 @@ import MainLayout from "./components/layout/MainLayout";
 
 // Pages
 import Login from "./pages/Login";
+import WebsiteEnquiry from "./components/WebsiteEnquiry";
 import Dashboard from "./pages/Dashboard";
 import Leads from "./pages/Leads";
 import Contacts from "./pages/Contacts";
@@ -23,6 +24,14 @@ import Payments from "./pages/Payments";
 import Automations from "./pages/Automations";
 import Activities from "./pages/Activities";
 import Tasks from "./pages/Tasks"
+import Calendar from "./pages/Calendar";
+import ImportExport from "./pages/ImportExport";
+import Roles from "./pages/Roles";
+import Users from "./pages/Users";
+import PipelineStages from "./pages/PipelineStages";
+import SalesPipeline from "./pages/SalesPipeline";
+import Forecast from "./pages/Forecast";
+import Reports from "./pages/Reports";
 // ============================================================
 // AUTH TOKEN HELPER
 // ============================================================
@@ -110,6 +119,16 @@ function App() {
           element={<LoginRoute />}
         />
 
+        {/* Public lead capture form (no login). Embeddable via iframe. */}
+        <Route
+          path="/enquiry"
+          element={
+            <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-950 via-indigo-950 to-violet-950 p-4">
+              <WebsiteEnquiry />
+            </div>
+          }
+        />
+
         {/* ======================================================
             PROTECTED ROUTES
         ====================================================== */}
@@ -177,6 +196,16 @@ function App() {
             element={<Activities />}
           />
 
+          <Route
+            path="/calendar"
+            element={<Calendar />}
+          />
+
+          <Route
+            path="/import-export"
+            element={<ImportExport />}
+          />
+
 <Route
             path="/tasks"
             element={<Tasks />}
@@ -210,6 +239,36 @@ function App() {
           <Route
             path="/payments"
             element={<Payments />}
+          />
+
+          <Route
+            path="/users"
+            element={<Users />}
+          />
+
+          <Route
+            path="/pipeline"
+            element={<SalesPipeline />}
+          />
+
+          <Route
+            path="/forecast"
+            element={<Forecast />}
+          />
+
+          <Route
+            path="/reports"
+            element={<Reports />}
+          />
+
+          <Route
+            path="/pipeline-stages"
+            element={<PipelineStages />}
+          />
+
+          <Route
+            path="/roles"
+            element={<Roles />}
           />
 
         </Route>

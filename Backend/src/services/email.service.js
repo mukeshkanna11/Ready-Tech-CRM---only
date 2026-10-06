@@ -1,51 +1,205 @@
-const { Resend } = require('resend');
-const nodemailer = require('nodemailer');
-const env = require('../config/env');
+"use strict";
 
-let resendClient;
+const { Resend } = require("resend");
 
-if (env.resendApiKey) {
-  resendClient = new Resend(env.resendApiKey);
-}
+const resend = process.env.RESEND_API_KEY
+  ? new Resend(process.env.RESEND_API_KEY)
+  : null;
 
-const sendEmail = async ({ to, subject, html, text }) => {
-  if (resendClient && env.resendFromEmail) {
-    const { data, error } = await resendClient.emails.send({
-      from: env.resendFromEmail,
-      to,
-      subject,
-      html,
-      text,
-    });
+const getFromEmail = () => {
+  return (
+    process.env.RESEND_FROM_EMAIL ||
+    "Ready Tech CRM <onboarding@resend.dev>"
+  );
+};
 
-    if (error) throw new Error(error.message || 'Resend email failed');
-    return data;
+const normalizeRecipients = (value) => {
+  if (!value) return [];
+
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => String(item).trim())
+      .filter(Boolean);
   }
 
-  if (env.smtpHost && env.smtpUser && env.smtpPass) {
-    const transporter = nodemailer.createTransport({
-      host: env.smtpHost,
-      port: env.smtpPort,
-      secure: env.smtpPort === 465,
-      auth: {
-        user: env.smtpUser,
-        pass: env.smtpPass,
-      },
-    });
+  return String(value)
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+};
 
-    return transporter.sendMail({
-      from: env.smtpFrom || env.smtpUser,
-      to,
-      subject,
-      html,
-      text,
-    });
+const isValidEmail = (email) => {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
+    String(email).trim()
+  );
+};
+
+const validateEmails = (emails, fieldName) => {
+  const list = normalizeRecipients(emails);
+
+  const invalid = list.filter(
+    (email) => !isValidEmail(email)
+  );
+
+  if (invalid.length) {
+    const error = new Error(
+      `Invalid ${fieldName}: ${invalid.join(", ")}`
+    );
+
+    error.statusCode = 400;
+    error.code = "INVALID_EMAIL";
+
+    throw error;
+  }
+
+  return list;
+};
+
+const sendEmail = async ({
+  to,
+  cc,
+  bcc,
+  replyTo,
+  subject,
+  html,
+  text,
+  from,
+  attachments,
+  tags,
+}) => {
+  if (!resend) {
+    const error = new Error(
+      "Resend is not configured. Please set RESEND_API_KEY."
+    );
+
+    error.statusCode = 503;
+    error.code = "EMAIL_SERVICE_NOT_CONFIGURED";
+
+    throw error;
+  }
+
+  const recipients = validateEmails(
+    to,
+    "recipient"
+  );
+
+  if (!recipients.length) {
+    const error = new Error(
+      "At least one recipient is required."
+    );
+
+    error.statusCode = 400;
+    error.code = "RECIPIENT_REQUIRED";
+
+    throw error;
+  }
+
+  if (!subject || !String(subject).trim()) {
+    const error = new Error(
+      "Email subject is required."
+    );
+
+    error.statusCode = 400;
+    error.code = "SUBJECT_REQUIRED";
+
+    throw error;
+  }
+
+  if (
+    (!html || !String(html).trim()) &&
+    (!text || !String(text).trim())
+  ) {
+    const error = new Error(
+      "Email body is required."
+    );
+
+    error.statusCode = 400;
+    error.code = "BODY_REQUIRED";
+
+    throw error;
+  }
+
+  const payload = {
+    from: from || getFromEmail(),
+    to: recipients,
+    subject: String(subject).trim(),
+  };
+
+  const ccRecipients = validateEmails(
+    cc,
+    "CC recipient"
+  );
+
+  const bccRecipients = validateEmails(
+    bcc,
+    "BCC recipient"
+  );
+
+  if (ccRecipients.length) {
+    payload.cc = ccRecipients;
+  }
+
+  if (bccRecipients.length) {
+    payload.bcc = bccRecipients;
+  }
+
+  if (replyTo) {
+    const replyRecipients = validateEmails(
+      replyTo,
+      "reply-to recipient"
+    );
+
+    if (replyRecipients.length) {
+      payload.replyTo =
+        replyRecipients.length === 1
+          ? replyRecipients[0]
+          : replyRecipients;
+    }
+  }
+
+  if (html) {
+    payload.html = String(html);
+  }
+
+  if (text) {
+    payload.text = String(text);
+  }
+
+  if (
+    Array.isArray(attachments) &&
+    attachments.length
+  ) {
+    payload.attachments = attachments;
+  }
+
+  if (
+    Array.isArray(tags) &&
+    tags.length
+  ) {
+    payload.tags = tags;
+  }
+
+  const { data, error } =
+    await resend.emails.send(payload);
+
+  if (error) {
+    const resendError = new Error(
+      error.message ||
+        "Email could not be sent."
+    );
+
+    resendError.statusCode = 502;
+    resendError.code =
+      error.name || "RESEND_EMAIL_ERROR";
+
+    throw resendError;
   }
 
   return {
-    skipped: true,
-    reason: 'Email provider is not configured',
+    id: data?.id || null,
   };
 };
 
-module.exports = { sendEmail };
+module.exports = {
+  sendEmail,
+};

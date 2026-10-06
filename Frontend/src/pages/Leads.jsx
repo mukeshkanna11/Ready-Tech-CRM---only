@@ -21,6 +21,7 @@ import {
   Plus,
   RefreshCw,
   Search,
+  Tags,
   Target,
   Trash2,
   TrendingUp,
@@ -28,6 +29,9 @@ import {
   Users,
   X,
 } from "lucide-react";
+import RecordActivityPanel from "../components/crm/RecordActivityPanel";
+import AssignLeadModal from "../components/crm/leads/AssignLeadModal";
+import FollowUpModal from "../components/crm/leads/FollowUpModal";
 
 const API_BASE =
   import.meta.env.VITE_API_URL || "http://localhost:5000/api/v1";
@@ -45,6 +49,35 @@ const SOURCE_OPTIONS = [
   "IMPORT",
   "OTHER",
 ];
+
+const USERS_ENDPOINT = `${API_BASE}/users`;
+
+const SOURCES_ENDPOINT = `${LEADS_ENDPOINT}/sources`;
+
+// Built-in sources first, then workspace sources ({ key, name, isActive }).
+function buildSourceOptions(customSources, { activeOnly = false, include } = {}) {
+  const options = SOURCE_OPTIONS.map((key) => ({
+    key,
+    name: key.replaceAll("_", " "),
+  }));
+
+  customSources.forEach((source) => {
+    if (!activeOnly || source.isActive || source.key === include) {
+      options.push({ key: source.key, name: source.name });
+    }
+  });
+
+  if (include && !options.some((option) => option.key === include)) {
+    options.push({ key: include, name: include.replaceAll("_", " ") });
+  }
+
+  return options;
+}
+
+function sourceLabel(key, customSources = []) {
+  const custom = customSources.find((source) => source.key === key);
+  return custom?.name || String(key || "OTHER").replaceAll("_", " ");
+}
 
 const STATUS_OPTIONS = [
   "NEW",
@@ -365,7 +398,14 @@ function Field({ label, children, required }) {
 const inputClass =
   "w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-500 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15 hover:border-slate-400 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500";
 
-function LeadForm({ form, setForm, onSubmit, saving, editing }) {
+function LeadForm({
+  form,
+  setForm,
+  onSubmit,
+  saving,
+  editing,
+  sourceOptions = [],
+}) {
   const update = (key, value) => {
     setForm((current) => ({
       ...current,
@@ -467,9 +507,9 @@ function LeadForm({ form, setForm, onSubmit, saving, editing }) {
               value={form.source}
               onChange={(e) => update("source", e.target.value)}
             >
-              {SOURCE_OPTIONS.map((source) => (
-                <option key={source} value={source}>
-                  {source.replaceAll("_", " ")}
+              {sourceOptions.map((source) => (
+                <option key={source.key} value={source.key}>
+                  {source.name}
                 </option>
               ))}
             </select>
@@ -667,7 +707,265 @@ function LeadForm({ form, setForm, onSubmit, saving, editing }) {
   );
 }
 
-function LeadDetails({ lead, onClose, onEdit, onConvert, onDelete }) {
+function LeadSourcesManager({ sources, onChanged }) {
+  const [name, setName] = useState("");
+  const [editingId, setEditingId] = useState(null);
+  const [editName, setEditName] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+
+  const run = async (action) => {
+    try {
+      setBusy(true);
+      setError("");
+      await action();
+      await onChanged();
+      return true;
+    } catch (err) {
+      setError(err.message || "Request failed");
+      return false;
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleCreate = async (event) => {
+    event.preventDefault();
+
+    if (name.trim().length < 2) {
+      setError("Source name must be at least 2 characters");
+      return;
+    }
+
+    const done = await run(() =>
+      apiRequest(SOURCES_ENDPOINT, {
+        method: "POST",
+        body: JSON.stringify({ name: name.trim() }),
+      })
+    );
+
+    if (done) setName("");
+  };
+
+  const handleUpdate = async (source, body) => {
+    const done = await run(() =>
+      apiRequest(`${SOURCES_ENDPOINT}/${source._id}`, {
+        method: "PUT",
+        body: JSON.stringify(body),
+      })
+    );
+
+    if (done) setEditingId(null);
+  };
+
+  const handleDelete = (source) => {
+    if (!window.confirm(`Delete source "${source.name}"?`)) return;
+
+    run(() =>
+      apiRequest(`${SOURCES_ENDPOINT}/${source._id}`, { method: "DELETE" })
+    );
+  };
+
+  return (
+    <div className="space-y-5">
+      {error && (
+        <div className="rounded-xl border border-rose-100 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
+          {error}
+        </div>
+      )}
+
+      <form onSubmit={handleCreate} className="flex gap-3">
+        <input
+          className={inputClass}
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="New source name, e.g. Trade Show"
+          maxLength={60}
+          disabled={busy}
+        />
+        <button
+          type="submit"
+          disabled={busy}
+          className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          <Plus size={17} />
+          Add
+        </button>
+      </form>
+
+      <p className="text-xs text-slate-500">
+        Built-in sources ({SOURCE_OPTIONS.map((key) => key.replaceAll("_", " ")).join(", ")}) are always available.
+      </p>
+
+      {sources.length === 0 ? (
+        <p className="rounded-xl border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500">
+          No custom sources yet.
+        </p>
+      ) : (
+        <ul className="divide-y divide-slate-200 rounded-2xl border border-slate-200">
+          {sources.map((source) => (
+            <li
+              key={source._id}
+              className="flex flex-wrap items-center gap-3 px-4 py-3"
+            >
+              {editingId === source._id ? (
+                <input
+                  className={`${inputClass} flex-1`}
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  maxLength={60}
+                  disabled={busy}
+                  autoFocus
+                />
+              ) : (
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold text-slate-900">
+                    {source.name}
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    {source.leadCount || 0} lead(s)
+                    {!source.isActive && " • Inactive"}
+                  </p>
+                </div>
+              )}
+
+              {editingId === source._id ? (
+                <>
+                  <button
+                    onClick={() => handleUpdate(source, { name: editName })}
+                    disabled={busy || !editName.trim()}
+                    className="rounded-lg bg-slate-900 px-3 py-2 text-xs font-semibold text-white disabled:opacity-50"
+                  >
+                    Save
+                  </button>
+                  <button
+                    onClick={() => setEditingId(null)}
+                    disabled={busy}
+                    className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700"
+                  >
+                    Cancel
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={() =>
+                      handleUpdate(source, { isActive: !source.isActive })
+                    }
+                    disabled={busy}
+                    className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                  >
+                    {source.isActive ? "Deactivate" : "Activate"}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setEditingId(source._id);
+                      setEditName(source.name);
+                    }}
+                    disabled={busy}
+                    className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+                    title="Rename"
+                  >
+                    <Edit3 size={16} />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(source)}
+                    disabled={busy}
+                    className="rounded-lg p-2 text-rose-500 hover:bg-rose-50"
+                    title="Delete"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function LeadStatusControl({ lead, onStatusChange }) {
+  const [status, setStatus] = useState(lead.status || "NEW");
+  const [lostReason, setLostReason] = useState(lead.lostReason || "");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  const unchanged =
+    status === lead.status &&
+    (status !== "LOST" || lostReason.trim() === (lead.lostReason || ""));
+
+  const handleUpdate = async () => {
+    if (status === "LOST" && !lostReason.trim()) {
+      setError("Lost reason is required");
+      return;
+    }
+
+    try {
+      setSaving(true);
+      setError("");
+      await onStatusChange(status, lostReason.trim());
+    } catch (err) {
+      setError(err.message || "Unable to update status");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="space-y-2 rounded-2xl border border-slate-200 bg-white p-4">
+      <p className="text-sm font-semibold text-slate-700">Change Status</p>
+
+      <select
+        className={inputClass}
+        value={status}
+        onChange={(e) => setStatus(e.target.value)}
+        disabled={saving}
+      >
+        {STATUS_OPTIONS.map((option) => (
+          <option key={option} value={option}>
+            {option}
+          </option>
+        ))}
+      </select>
+
+      {status === "LOST" && (
+        <input
+          className={inputClass}
+          value={lostReason}
+          onChange={(e) => setLostReason(e.target.value)}
+          placeholder="Lost reason"
+          disabled={saving}
+        />
+      )}
+
+      {error && (
+        <p className="text-xs font-medium text-rose-600">{error}</p>
+      )}
+
+      <button
+        onClick={handleUpdate}
+        disabled={saving || unchanged}
+        className="w-full rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        {saving ? "Updating..." : "Update Status"}
+      </button>
+    </div>
+  );
+}
+
+function LeadDetails({
+  lead,
+  customSources = [],
+  onClose,
+  onEdit,
+  onConvert,
+  onDelete,
+  onAssign,
+  onFollowUp,
+  onStatusChange,
+}) {
   return (
     <Modal
       title="Lead Details"
@@ -737,6 +1035,16 @@ function LeadDetails({ lead, onClose, onEdit, onConvert, onDelete }) {
               label="Next Follow-up"
               value={formatDateTime(lead.nextFollowUpAt)}
             />
+            <InfoCard
+              icon={UserCheck}
+              label="Assigned To"
+              value={lead.assignedTo?.name || "Unassigned"}
+            />
+            <InfoCard
+              icon={Phone}
+              label="Last Contact"
+              value={formatDateTime(lead.lastContactAt)}
+            />
           </div>
 
           <div className="rounded-2xl border border-slate-200 p-5">
@@ -752,7 +1060,10 @@ function LeadDetails({ lead, onClose, onEdit, onConvert, onDelete }) {
               <Detail label="Postal Code" value={lead.postalCode} />
               <Detail label="GSTIN" value={lead.gstin} />
               <Detail label="PAN" value={lead.panNumber} />
-              <Detail label="Source" value={lead.source} />
+              <Detail
+                label="Source"
+                value={sourceLabel(lead.source, customSources)}
+              />
             </div>
           </div>
 
@@ -792,12 +1103,34 @@ function LeadDetails({ lead, onClose, onEdit, onConvert, onDelete }) {
             </div>
           </div>
 
+          <LeadStatusControl
+            key={`${lead._id}-${lead.status}-${lead.lostReason || ""}`}
+            lead={lead}
+            onStatusChange={onStatusChange}
+          />
+
           <button
             onClick={onEdit}
             className="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
           >
             <Edit3 size={17} />
             Edit Lead
+          </button>
+
+          <button
+            onClick={onAssign}
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+          >
+            <UserCheck size={17} />
+            Assign Lead
+          </button>
+
+          <button
+            onClick={onFollowUp}
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+          >
+            <Clock3 size={17} />
+            Schedule Follow-up
           </button>
 
           {!lead.convertedOpportunity && (
@@ -824,6 +1157,14 @@ function LeadDetails({ lead, onClose, onEdit, onConvert, onDelete }) {
             Delete Lead
           </button>
         </div>
+      </div>
+      <div className="mt-6">
+        <RecordActivityPanel
+          key={lead._id}
+          recordType="lead"
+          recordId={lead._id}
+          followUpAt={lead.nextFollowUpAt}
+        />
       </div>
     </Modal>
   );
@@ -885,6 +1226,12 @@ export default function Leads() {
 
   const [sortBy, setSortBy] = useState("createdAt");
   const [sortOrder, setSortOrder] = useState("desc");
+  const [assignTarget, setAssignTarget] = useState(null);
+  const [followUpTarget, setFollowUpTarget] = useState(null);
+  const [users, setUsers] = useState([]);
+  const [customSources, setCustomSources] = useState([]);
+  const [showSources, setShowSources] = useState(false);
+  const [usersError, setUsersError] = useState("");
 
   const fetchLeads = useCallback(
     async (showRefresh = false) => {
@@ -943,6 +1290,21 @@ export default function Leads() {
     },
     [page, limit, search, statusFilter, sourceFilter]
   );
+
+  // Built-in sources still work if custom sources fail to load.
+  const fetchSources = useCallback(
+    () =>
+      apiRequest(SOURCES_ENDPOINT)
+        .then((result) =>
+          setCustomSources(Array.isArray(result?.data) ? result.data : [])
+        )
+        .catch(() => setCustomSources([])),
+    []
+  );
+
+  useEffect(() => {
+    fetchSources();
+  }, [fetchSources]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -1101,6 +1463,63 @@ export default function Leads() {
     }
   };
 
+  // Shared by assign / status / follow-up: sync the updated lead into
+  // the details view and the list, then refresh from the server.
+  const applyLeadUpdate = async (url, body) => {
+    const result = await apiRequest(url, {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    });
+
+    const updated = result?.data;
+
+    if (updated?._id) {
+      setSelectedLead(updated);
+      setLeads((current) =>
+        current.map((item) => (item._id === updated._id ? updated : item))
+      );
+    }
+
+    await fetchLeads(true);
+  };
+
+  const openAssign = async (lead) => {
+    setAssignTarget(lead);
+
+    if (users.length) return;
+
+    try {
+      setUsersError("");
+      const result = await apiRequest(
+        `${USERS_ENDPOINT}?limit=100&isActive=true`
+      );
+      setUsers(Array.isArray(result?.data) ? result.data : []);
+    } catch (err) {
+      setUsersError(err.message || "Unable to load users");
+    }
+  };
+
+  const handleAssign = async (userId) => {
+    await applyLeadUpdate(`${LEADS_ENDPOINT}/${assignTarget._id}/assign`, {
+      userId,
+    });
+    setAssignTarget(null);
+  };
+
+  const handleFollowUp = async (payload) => {
+    await applyLeadUpdate(
+      `${LEADS_ENDPOINT}/${followUpTarget._id}/follow-up`,
+      payload
+    );
+    setFollowUpTarget(null);
+  };
+
+  const handleStatusChange = (lead, status, lostReason) =>
+    applyLeadUpdate(`${LEADS_ENDPOINT}/${lead._id}/status`, {
+      status,
+      ...(status === "LOST" ? { lostReason } : {}),
+    });
+
   const toggleSort = (field) => {
     if (sortBy === field) {
       setSortOrder((current) =>
@@ -1129,7 +1548,7 @@ export default function Leads() {
       lead.companyName,
       lead.email,
       lead.phone,
-      lead.source,
+      sourceLabel(lead.source, customSources),
       lead.status,
       lead.value,
       formatDate(lead.expectedCloseDate),
@@ -1198,6 +1617,14 @@ export default function Leads() {
                   className={refreshing ? "animate-spin" : ""}
                 />
                 Refresh
+              </button>
+
+              <button
+                onClick={() => setShowSources(true)}
+                className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/10 px-4 py-3 text-sm font-semibold transition hover:bg-white/15"
+              >
+                <Tags size={17} />
+                Sources
               </button>
 
               <button
@@ -1321,9 +1748,9 @@ export default function Leads() {
                 className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium outline-none focus:ring-4 focus:ring-brand-500/15 text-slate-900 placeholder:text-slate-500 transition hover:border-slate-400 focus:border-brand-500 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500"
               >
                 <option value="ALL">All Sources</option>
-                {SOURCE_OPTIONS.map((source) => (
-                  <option key={source} value={source}>
-                    {source.replaceAll("_", " ")}
+                {buildSourceOptions(customSources).map((source) => (
+                  <option key={source.key} value={source.key}>
+                    {source.name}
                   </option>
                 ))}
               </select>
@@ -1482,7 +1909,7 @@ export default function Leads() {
                               {lead.companyName || "—"}
                             </p>
                             <p className="mt-1 text-xs text-slate-500">
-                              {lead.source || "OTHER"}
+                              {sourceLabel(lead.source, customSources)}
                             </p>
                           </div>
                         </td>
@@ -1625,6 +2052,10 @@ export default function Leads() {
             onSubmit={handleSubmit}
             saving={saving}
             editing={Boolean(editingLead)}
+            sourceOptions={buildSourceOptions(customSources, {
+              activeOnly: true,
+              include: form.source,
+            })}
           />
         </Modal>
       )}
@@ -1633,11 +2064,63 @@ export default function Leads() {
       {selectedLead && (
         <LeadDetails
           lead={selectedLead}
+          customSources={customSources}
           onClose={() => setSelectedLead(null)}
           onEdit={() => openEdit(selectedLead)}
           onConvert={() => handleConvert(selectedLead)}
           onDelete={() => handleDelete(selectedLead)}
+          onAssign={() => openAssign(selectedLead)}
+          onFollowUp={() => setFollowUpTarget(selectedLead)}
+          onStatusChange={(status, lostReason) =>
+            handleStatusChange(selectedLead, status, lostReason)
+          }
         />
+      )}
+
+      {/* SOURCES */}
+      {showSources && (
+        <Modal
+          title="Lead Sources"
+          subtitle="Manage custom sources for your workspace"
+          onClose={() => setShowSources(false)}
+        >
+          <LeadSourcesManager
+            sources={customSources}
+            onChanged={fetchSources}
+          />
+        </Modal>
+      )}
+
+      {/* ASSIGN */}
+      {assignTarget && (
+        <Modal
+          title="Assign Lead"
+          subtitle={assignTarget.name}
+          onClose={() => setAssignTarget(null)}
+        >
+          <AssignLeadModal
+            lead={assignTarget}
+            users={users}
+            usersError={usersError}
+            onSubmit={handleAssign}
+            onCancel={() => setAssignTarget(null)}
+          />
+        </Modal>
+      )}
+
+      {/* FOLLOW-UP */}
+      {followUpTarget && (
+        <Modal
+          title="Schedule Follow-up"
+          subtitle={followUpTarget.name}
+          onClose={() => setFollowUpTarget(null)}
+        >
+          <FollowUpModal
+            lead={followUpTarget}
+            onSubmit={handleFollowUp}
+            onCancel={() => setFollowUpTarget(null)}
+          />
+        </Modal>
       )}
     </div>
   );

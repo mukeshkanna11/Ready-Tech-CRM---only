@@ -20,6 +20,10 @@ const {
   convertLead,
 } = require('../services/lead.service');
 
+const {
+  isValidLeadSource,
+} = require('./leadSource.controller');
+
 const ApiError =
   require('../utils/ApiError');
 
@@ -41,17 +45,6 @@ const LEAD_STATUSES = [
   'LOST',
 ];
 
-const LEAD_SOURCES = [
-  'WEBSITE',
-  'REFERRAL',
-  'SOCIAL_MEDIA',
-  'ADVERTISEMENT',
-  'EMAIL',
-  'PHONE',
-  'WALK_IN',
-  'IMPORT',
-  'OTHER',
-];
 
 
 // ======================================================
@@ -62,6 +55,7 @@ const base =
   createCrudController({
     Model: Lead,
     populate: POPULATE,
+    filterFields: ['source'],
   });
 
 
@@ -313,9 +307,10 @@ const createLead =
 
       if (
         body.source &&
-        !LEAD_SOURCES.includes(
-          body.source
-        )
+        !(await isValidLeadSource(
+          body.source,
+          req.user?.workspace || null
+        ))
       ) {
         throw new ApiError(
           400,
@@ -399,6 +394,10 @@ const createLead =
       // --------------------------------------------------
       // CREATE
       // --------------------------------------------------
+
+      // Workspace always comes from the logged-in user.
+      body.workspace =
+        req.user?.workspace || null;
 
       let lead;
 
@@ -622,9 +621,10 @@ const updateLead =
 
       if (
         update.source !== undefined &&
-        !LEAD_SOURCES.includes(
-          update.source
-        )
+        !(await isValidLeadSource(
+          update.source,
+          req.user?.workspace || null
+        ))
       ) {
         throw new ApiError(
           400,
@@ -720,6 +720,9 @@ const updateLead =
       // --------------------------------------------------
       // UPDATE
       // --------------------------------------------------
+
+      // Workspace cannot be changed through the API.
+      delete update.workspace;
 
       let updated;
 

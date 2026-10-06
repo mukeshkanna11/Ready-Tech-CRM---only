@@ -44,7 +44,8 @@ import API from "../services/api";
    CONSTANTS
 ========================================================= */
 
-const STAGES = [
+// Fallback until configured stages load from /pipeline-stages.
+const DEFAULT_STAGES = [
   "QUALIFICATION",
   "DISCOVERY",
   "PROPOSAL",
@@ -273,6 +274,41 @@ const statusClass = (status) => {
 ========================================================= */
 
 export default function Opportunities() {
+  /* -------------------------------------------------------
+     PIPELINE STAGES (configurable)
+  ------------------------------------------------------- */
+
+  const [stageList, setStageList] = useState([]);
+
+  useEffect(() => {
+    API.get("/pipeline-stages")
+      .then((response) => {
+        const data = response?.data?.data;
+        if (Array.isArray(data)) setStageList(data);
+      })
+      .catch(() => setStageList([]));
+  }, []);
+
+  // Active stages for selection; inactive stages still in use
+  // stay visible in the pipeline summary and filter.
+  const STAGES = useMemo(
+    () =>
+      stageList.length
+        ? stageList.filter((item) => item.isActive).map((item) => item.key)
+        : DEFAULT_STAGES,
+    [stageList]
+  );
+
+  const VISIBLE_STAGES = useMemo(
+    () =>
+      stageList.length
+        ? stageList
+            .filter((item) => item.isActive || item.opportunityCount > 0)
+            .map((item) => item.key)
+        : DEFAULT_STAGES,
+    [stageList]
+  );
+
   /* -------------------------------------------------------
      DATA
   ------------------------------------------------------- */
@@ -1071,7 +1107,7 @@ export default function Opportunities() {
           </div>
 
           <div className="grid grid-cols-2 divide-x divide-y divide-slate-100 md:grid-cols-3 xl:grid-cols-6 xl:divide-y-0">
-            {STAGES.map((item) => {
+            {VISIBLE_STAGES.map((item) => {
               const pipelineItem = pipeline.find(
                 (entry) =>
                   entry.stage === item ||
@@ -1205,7 +1241,7 @@ export default function Opportunities() {
                   setStage(value);
                   setPage(1);
                 }}
-                options={STAGES}
+                options={VISIBLE_STAGES}
               />
 
               <FilterSelect
@@ -1342,6 +1378,7 @@ export default function Opportunities() {
                           openClose(item, "LOST")
                         }
                         onStageChange={updateStage}
+                        stages={STAGES}
                       />
                     ))}
                   </tbody>
@@ -2144,8 +2181,15 @@ function OpportunityRow({
   onCloseWon,
   onCloseLost,
   onStageChange,
+  stages = DEFAULT_STAGES,
 }) {
   const [menu, setMenu] = useState(false);
+
+  // Keep the current stage selectable even if it was deactivated.
+  const STAGES =
+    opportunity.stage && !stages.includes(opportunity.stage)
+      ? [...stages, opportunity.stage]
+      : stages;
 
   return (
     <tr className="group transition hover:bg-slate-50/70">

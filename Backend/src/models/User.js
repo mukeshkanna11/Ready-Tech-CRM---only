@@ -71,6 +71,19 @@ const userSchema = new mongoose.Schema(
 
 
     // --------------------------------------------------
+    // WORKSPACE / TENANT
+    // --------------------------------------------------
+
+    // Optional until the tenant migration has been run.
+    workspace: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Workspace',
+      default: null,
+      index: true,
+    },
+
+
+    // --------------------------------------------------
     // ACCOUNT STATUS
     // --------------------------------------------------
 

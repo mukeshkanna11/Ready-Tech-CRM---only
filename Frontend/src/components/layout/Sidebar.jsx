@@ -9,6 +9,12 @@ import {
   Settings,
   FileText,
   Wallet,
+  ShieldCheck,
+  UserCog,
+  GitBranch,
+  Kanban,
+  LineChart,
+  BarChart3,
   X,
 } from "lucide-react";
 
@@ -51,6 +57,16 @@ const navigation = [
         icon: BriefcaseBusiness,
       },
       {
+        name: "Sales Pipeline",
+        path: "/pipeline",
+        icon: Kanban,
+      },
+      {
+        name: "Forecast",
+        path: "/forecast",
+        icon: LineChart,
+      },
+      {
         name: "Follow-ups",
         path: "/follow-ups",
         icon: CalendarClock,
@@ -72,9 +88,29 @@ const navigation = [
     section: "MANAGEMENT",
     items: [
       {
+        name: "Reports",
+        path: "/reports",
+        icon: BarChart3,
+      },
+      {
         name: "Notifications",
         path: "/notifications",
         icon: Bell,
+      },
+      {
+        name: "Pipeline Stages",
+        path: "/pipeline-stages",
+        icon: GitBranch,
+      },
+      {
+        name: "Users",
+        path: "/users",
+        icon: UserCog,
+      },
+      {
+        name: "Roles",
+        path: "/roles",
+        icon: ShieldCheck,
       },
       {
         name: "Settings",

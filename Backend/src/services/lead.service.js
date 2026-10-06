@@ -398,10 +398,13 @@ const buildCompanyData = ({
 
     owner,
 
+    // Company.source is a fixed enum; custom lead sources map to OTHER.
     source:
-      normalizeUpper(
-        lead.source
-      ),
+      Company.schema.path('source').enumValues.includes(
+        normalizeUpper(lead.source)
+      )
+        ? normalizeUpper(lead.source)
+        : 'OTHER',
 
     status:
       COMPANY_STATUS,

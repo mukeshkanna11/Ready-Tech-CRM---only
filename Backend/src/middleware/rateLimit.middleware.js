@@ -256,6 +256,39 @@ const securityLimiter =
 
 
 // ======================================================
+// PUBLIC FORM LIMITER
+// ======================================================
+//
+// Unauthenticated lead capture / enquiry forms.
+//
+// ======================================================
+
+const publicFormLimiter =
+  rateLimit({
+    windowMs:
+      15 * 60 * 1000,
+    limit:
+      Number(
+        process.env.PUBLIC_FORM_RATE_LIMIT || 10
+      ),
+    standardHeaders:
+      'draft-8',
+    legacyHeaders:
+      false,
+    handler:
+      (_req, res) => {
+        return res.status(429).json({
+          success:
+            false,
+          message:
+            'Too many submissions. Please try again later.',
+          code:
+            'PUBLIC_FORM_RATE_LIMIT_EXCEEDED',
+        });
+      },
+  });
+
+// ======================================================
 // EXPORT
 // ======================================================
 
@@ -264,4 +297,5 @@ module.exports = {
   authLimiter,
   loginLimiter,
   securityLimiter,
+  publicFormLimiter,
 };

@@ -9,6 +9,7 @@ const ACTIVITY_TYPES = [
   "DEMO",
   "FOLLOW_UP",
   "WHATSAPP",
+  "SMS",
   "TASK",
   "NOTE",
   "OTHER",
@@ -95,6 +96,14 @@ const recurrenceSchema = new mongoose.Schema(
 
 const activitySchema = new mongoose.Schema(
   {
+    // Tenant. Optional until the workspace migration has been run.
+    workspace: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Workspace",
+      default: null,
+      index: true,
+    },
+
     type: {
       type: String,
       enum: ACTIVITY_TYPES,
@@ -270,6 +279,18 @@ const activitySchema = new mongoose.Schema(
     ],
 
     attachments: [attachmentSchema],
+
+    // Outbound email / SMS / WhatsApp delivery result.
+    delivery: {
+      channel: { type: String, enum: ["EMAIL", "SMS", "WHATSAPP"] },
+      provider: { type: String, trim: true, maxlength: 50 },
+      to: { type: String, trim: true, maxlength: 254 },
+      status: { type: String, enum: ["SENT", "FAILED"] },
+      messageId: { type: String, trim: true, maxlength: 200 },
+      error: { type: String, trim: true, maxlength: 1000 },
+      campaign: { type: mongoose.Schema.Types.ObjectId, ref: "EmailCampaign" },
+      template: { type: mongoose.Schema.Types.ObjectId, ref: "EmailTemplate" },
+    },
 
     internalNotes: {
       type: String,

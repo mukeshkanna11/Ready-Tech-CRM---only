@@ -20,6 +20,7 @@ const {
   getMyOpportunities,
   getUpcomingClosures,
 } = require('../controllers/opportunity.controller');
+const { getForecast } = require('../controllers/opportunityForecast.controller');
 
 const {
   authenticate,
@@ -51,6 +52,14 @@ router.get(
 
 // Opportunity pipeline / Kanban
 // GET /api/v1/opportunities/pipeline
+// Sales forecast
+// GET /api/v1/opportunities/forecast
+router.get(
+  '/forecast',
+  authenticate,
+  getForecast
+);
+
 router.get(
   '/pipeline',
   authenticate,

@@ -3,7 +3,7 @@ import React, {
   useMemo,
   useState,
 } from "react";
-import { ClipboardList } from "lucide-react";
+import { CalendarDays, ClipboardList, FileSpreadsheet } from "lucide-react";
 import {
   NavLink,
   Outlet,
@@ -88,6 +88,18 @@ const navigation = [
     path: "/tasks",
     icon: ListTodo,
     description: "Manage & track tasks",
+  },
+  {
+    name: "Calendar",
+    path: "/calendar",
+    icon: CalendarDays,
+    description: "Events & reminders",
+  },
+  {
+    name: "Import / Export",
+    path: "/import-export",
+    icon: FileSpreadsheet,
+    description: "CSV import & export",
   },
   {
     name: "Products",

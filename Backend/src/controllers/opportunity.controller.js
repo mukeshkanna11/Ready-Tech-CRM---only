@@ -8,6 +8,7 @@ const Contact = require('../models/Contact');
 const Lead = require('../models/Lead');
 const User = require('../models/User');
 const Product = require('../models/Product');
+const { getStageKeys } = require('../services/pipelineStage.service');
 
 const {
   OPPORTUNITY_STAGES,
@@ -204,14 +205,17 @@ const createOpportunity = async (req, res, next) => {
     // ENUM VALIDATION
     // --------------------------------------------------
 
+    const activeStages =
+      await getStageKeys({ activeOnly: true });
+
     if (
       stage &&
-      !OPPORTUNITY_STAGES.includes(stage)
+      !activeStages.includes(stage)
     ) {
       return res.status(400).json({
         success: false,
         message: 'Invalid opportunity stage',
-        allowedStages: OPPORTUNITY_STAGES,
+        allowedStages: activeStages,
       });
     }
 
@@ -857,17 +861,26 @@ const updateOpportunity = async (
     // ENUMS
     // --------------------------------------------------
 
+    // Active stages are allowed; an inactive stage is kept
+    // only if the opportunity is already in it.
+    const activeStages =
+      await getStageKeys({ activeOnly: true });
+
     if (
       updateData.stage &&
-      !OPPORTUNITY_STAGES.includes(
+      !activeStages.includes(
         updateData.stage
-      )
+      ) &&
+      !(await Opportunity.exists({
+        _id: req.params.id,
+        stage: updateData.stage,
+      }))
     ) {
       return res.status(400).json({
         success: false,
         message: 'Invalid opportunity stage',
         allowedStages:
-          OPPORTUNITY_STAGES,
+          activeStages,
       });
     }
 
@@ -1608,7 +1621,7 @@ const getOpportunityPipeline = async (
       ]);
 
     const stageOrder =
-      OPPORTUNITY_STAGES;
+      await getStageKeys();
 
     pipeline.sort((a, b) => {
       return (
@@ -1694,15 +1707,18 @@ const updateOpportunityStage = async (
       });
     }
 
+    const activeStages =
+      await getStageKeys({ activeOnly: true });
+
     if (
       !stage ||
-      !OPPORTUNITY_STAGES.includes(stage)
+      !activeStages.includes(stage)
     ) {
       return res.status(400).json({
         success: false,
         message: 'Invalid opportunity stage',
         allowedStages:
-          OPPORTUNITY_STAGES,
+          activeStages,
       });
     }
 

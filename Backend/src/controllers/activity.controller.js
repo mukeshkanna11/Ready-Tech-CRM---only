@@ -372,6 +372,8 @@ exports.create = asyncHandler(
         subject: String(subject).trim(),
         assignedTo: finalAssignedTo,
         createdBy: userId,
+        // Workspace always comes from the logged-in user.
+        workspace: req.user?.workspace || null,
       });
 
     const populated =
@@ -558,6 +560,8 @@ exports.update = asyncHandler(
       priority,
       outcome,
       assignedTo,
+      // Workspace cannot be changed through the API.
+      workspace: _ignoredWorkspace,
       ...updates
     } = req.body;
 
@@ -633,6 +637,11 @@ exports.update = asyncHandler(
 
     updates.updatedBy =
       getUserId(req);
+
+    // A rescheduled reminder must fire again.
+    if (updates.reminderAt !== undefined) {
+      updates.reminderSent = false;
+    }
 
     const activity =
       await Activity.findOneAndUpdate(

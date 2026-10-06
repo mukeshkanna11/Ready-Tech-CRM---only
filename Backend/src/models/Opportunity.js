@@ -169,12 +169,11 @@ const opportunitySchema = new Schema(
     // PIPELINE
     // --------------------------------------------------
 
+    // Valid values are managed by PipelineStage (checked in the controller).
     stage: {
       type: String,
-      enum: {
-        values: OPPORTUNITY_STAGES,
-        message: 'Invalid opportunity stage',
-      },
+      uppercase: true,
+      trim: true,
       default: 'QUALIFICATION',
       index: true,
     },

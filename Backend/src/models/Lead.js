@@ -9,6 +9,14 @@ const mongoose = require('mongoose');
 
 const leadSchema = new mongoose.Schema(
   {
+    // Tenant. Optional until the workspace migration has been run.
+    workspace: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Workspace',
+      default: null,
+      index: true,
+    },
+
     // ==================================================
     // BASIC LEAD INFORMATION
     // ==================================================
@@ -131,22 +139,13 @@ const leadSchema = new mongoose.Schema(
     // LEAD SOURCE
     // ==================================================
 
+    // Built-in LEAD_SOURCES key or a LeadSource.key of the
+    // workspace (validated in lead.controller).
     source: {
       type: String,
-      enum: {
-        values: [
-          'WEBSITE',
-          'REFERRAL',
-          'SOCIAL_MEDIA',
-          'ADVERTISEMENT',
-          'EMAIL',
-          'PHONE',
-          'WALK_IN',
-          'IMPORT',
-          'OTHER',
-        ],
-        message: 'Invalid lead source',
-      },
+      uppercase: true,
+      trim: true,
+      match: [/^[A-Z][A-Z0-9_]{1,49}$/, 'Invalid lead source'],
       default: 'OTHER',
       index: true,
     },

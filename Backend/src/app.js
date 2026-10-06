@@ -15,6 +15,7 @@ const {
 } = require('./middleware/error.middleware');
 
 const authRoutes = require('./routes/auth.routes');
+const { requirePermission } = require('./middleware/permission.middleware');
 const userRoutes = require('./routes/user.routes');
 const roleRoutes = require('./routes/role.routes');
 const companyRoutes = require('./routes/company.routes');
@@ -33,9 +34,12 @@ const reportRoutes = require('./routes/report.routes');
 const salesOrderRoutes = require('./routes/salesOrder.routes');
 const paymentRoutes = require('./routes/payment.routes');
 const automationRoutes = require('./routes/automation.routes');
+const pipelineStageRoutes = require('./routes/pipelineStage.routes');
 const emailWebhookRoutes =
   require('./routes/emailWebhook.routes');
   const emailEnquiryRoutes = require('./routes/emailEnquiry.routes');
+const publicLeadRoutes = require('./routes/publicLead.routes');
+const dataTransferRoutes = require('./routes/dataTransfer.routes');
 const app = express();
 
 app.disable('x-powered-by');
@@ -215,11 +219,21 @@ app.use(
 );
 
 // ======================================================
+// PUBLIC LEAD CAPTURE (no JWT)
+// ======================================================
+
+app.use(
+  `${api}/public`,
+  publicLeadRoutes
+);
+
+// ======================================================
 // USERS
 // ======================================================
 
 app.use(
   `${api}/users`,
+  requirePermission('USERS', { openRead: true }),
   userRoutes
 );
 
@@ -229,6 +243,7 @@ app.use(
 
 app.use(
   `${api}/roles`,
+  requirePermission('ROLES'),
   roleRoutes
 );
 
@@ -238,6 +253,7 @@ app.use(
 
 app.use(
   `${api}/companies`,
+  requirePermission('COMPANIES'),
   companyRoutes
 );
 
@@ -247,6 +263,7 @@ app.use(
 
 app.use(
   `${api}/contacts`,
+  requirePermission('CONTACTS'),
   contactRoutes
 );
 
@@ -256,6 +273,7 @@ app.use(
 
 app.use(
   `${api}/leads`,
+  requirePermission('LEADS'),
   leadRoutes
 );
 
@@ -265,10 +283,12 @@ app.use(
 
 app.use(
   `${api}/opportunities`,
+  requirePermission('OPPORTUNITIES'),
   opportunityRoutes
 );
 
-app.use(`${api}/sales-orders`, salesOrderRoutes);
+app.use(`${api}/pipeline-stages`, requirePermission('OPPORTUNITIES'), pipelineStageRoutes);
+app.use(`${api}/sales-orders`, requirePermission('QUOTATIONS'), salesOrderRoutes);
 
 // ======================================================
 // ACTIVITIES
@@ -276,6 +296,7 @@ app.use(`${api}/sales-orders`, salesOrderRoutes);
 
 app.use(
   `${api}/activities`,
+  requirePermission('ACTIVITIES'),
   activityRoutes
 );
 
@@ -285,6 +306,7 @@ app.use(
 
 app.use(
   `${api}/tasks`,
+  requirePermission('TASKS'),
   taskRoutes
 );
 
@@ -294,7 +316,17 @@ app.use(
 
 app.use(
   `${api}/notes`,
+  requirePermission('NOTES'),
   noteRoutes
+);
+
+// ======================================================
+// DATA IMPORT / EXPORT (permission checked per record type)
+// ======================================================
+
+app.use(
+  `${api}/data`,
+  dataTransferRoutes
 );
 
 // ======================================================
@@ -303,6 +335,7 @@ app.use(
 
 app.use(
   `${api}/products`,
+  requirePermission('PRODUCTS'),
   productRoutes
 );
 
@@ -312,6 +345,7 @@ app.use(
 
 app.use(
   `${api}/quotations`,
+  requirePermission('QUOTATIONS'),
   quotationRoutes
 );
 
@@ -321,6 +355,7 @@ app.use(
 
 app.use(
   `${api}/invoices`,
+  requirePermission('INVOICES'),
   invoiceRoutes
 );
 
@@ -350,6 +385,7 @@ app.use(
 
 app.use(
   `${api}/dashboard`,
+  requirePermission('DASHBOARD'),
   dashboardRoutes
 );
 
@@ -359,6 +395,7 @@ app.use(
 
 app.use(
   `${api}/reports`,
+  requirePermission('REPORTS'),
   reportRoutes
 );
 
@@ -368,6 +405,7 @@ app.use(
 
 app.use(
   '/api/v1/payments',
+  requirePermission('INVOICES', { write: 'PAYMENT' }),
   paymentRoutes
 );
 
@@ -375,7 +413,7 @@ app.use(
 // automation
 // ======================================================
 
-app.use('/api/v1/automations', automationRoutes);
+app.use('/api/v1/automations', requirePermission('AUTOMATIONS'), automationRoutes);
 
 
 // ======================================================
