@@ -9,6 +9,7 @@ import {
   MessageCircle,
   MessagesSquare,
   Paperclip,
+  Sparkles,
   Phone,
   Plus,
   StickyNote,
@@ -16,6 +17,7 @@ import {
   Users,
 } from "lucide-react";
 import API from "../../services/api";
+import AIPanel from "./AIPanel";
 
 // Shared panel for Lead / Contact / Company details:
 // interaction history, communication logs, notes & attachments.
@@ -684,6 +686,7 @@ const TABS = [
   { key: "history", name: "History", icon: History },
   { key: "communications", name: "Communications", icon: MessagesSquare },
   { key: "notes", name: "Notes & Files", icon: StickyNote },
+  { key: "ai", name: "AI Assist", icon: Sparkles },
 ];
 
 export default function RecordActivityPanel({ recordType, recordId, followUpAt }) {
@@ -750,6 +753,8 @@ export default function RecordActivityPanel({ recordType, recordId, followUpAt }
           activities={activities}
           onChanged={load}
         />
+      ) : tab === "ai" ? (
+        <AIPanel recordType={recordType} recordId={recordId} onChanged={load} />
       ) : (
         <NotesTab
           recordType={recordType}

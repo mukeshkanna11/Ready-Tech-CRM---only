@@ -32,6 +32,10 @@ import PipelineStages from "./pages/PipelineStages";
 import SalesPipeline from "./pages/SalesPipeline";
 import Forecast from "./pages/Forecast";
 import Reports from "./pages/Reports";
+import SalesPerformance from "./pages/SalesPerformance";
+import Conversion from "./pages/Conversion";
+import CustomReports from "./pages/CustomReports";
+import Teams from "./pages/Teams";
 // ============================================================
 // AUTH TOKEN HELPER
 // ============================================================
@@ -260,6 +264,11 @@ function App() {
             path="/reports"
             element={<Reports />}
           />
+
+          <Route path="/sales-performance" element={<SalesPerformance />} />
+          <Route path="/conversion" element={<Conversion />} />
+          <Route path="/custom-reports" element={<CustomReports />} />
+          <Route path="/teams" element={<Teams />} />
 
           <Route
             path="/pipeline-stages"

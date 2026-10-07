@@ -31,6 +31,9 @@ const invoiceRoutes = require('./routes/invoice.routes');
 const notificationRoutes = require('./routes/notification.routes');
 const dashboardRoutes = require('./routes/dashboard.routes');
 const reportRoutes = require('./routes/report.routes');
+const customReportRoutes = require('./routes/customReport.routes');
+const { teamRoutes, territoryRoutes } = require('./routes/team.routes');
+const aiRoutes = require('./routes/ai.routes');
 const salesOrderRoutes = require('./routes/salesOrder.routes');
 const paymentRoutes = require('./routes/payment.routes');
 const automationRoutes = require('./routes/automation.routes');
@@ -238,6 +241,13 @@ app.use(
 );
 
 // ======================================================
+// TEAMS / TERRITORIES (lookup reads open, writes need USERS)
+// ======================================================
+
+app.use(`${api}/teams`, requirePermission('USERS', { openRead: true }), teamRoutes);
+app.use(`${api}/territories`, requirePermission('USERS', { openRead: true }), territoryRoutes);
+
+// ======================================================
 // ROLES
 // ======================================================
 
@@ -393,6 +403,14 @@ app.use(
 // REPORTS
 // ======================================================
 
+// Saved custom reports: anyone who can read reports may
+// save their own definitions (no REPORTS:CREATE grant exists).
+app.use(
+  `${api}/reports/custom`,
+  requirePermission('REPORTS', { write: 'READ' }),
+  customReportRoutes
+);
+
 app.use(
   `${api}/reports`,
   requirePermission('REPORTS'),
@@ -414,6 +432,12 @@ app.use(
 // ======================================================
 
 app.use('/api/v1/automations', requirePermission('AUTOMATIONS'), automationRoutes);
+
+// ======================================================
+// AI (permissions checked per endpoint)
+// ======================================================
+
+app.use(`${api}/ai`, aiRoutes);
 
 
 // ======================================================

@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
+import API from '../services/api';
 import {
   Activity,
   AlertCircle,
@@ -24,6 +25,7 @@ import {
   RefreshCw,
   Search,
   Settings2,
+  Sparkles,
   Trash2,
   TrendingUp,
   UserPlus,
@@ -335,6 +337,7 @@ export default function Automations() {
   const [statusFilter, setStatusFilter] = useState('');
 
   const [modal, setModal] = useState(null);
+  const [aiPrompt, setAiPrompt] = useState({ text: '', loading: false, error: '' });
   const [selectedAutomation, setSelectedAutomation] = useState(null);
 
   const [form, setForm] = useState(createDefaultForm());
@@ -486,6 +489,24 @@ export default function Automations() {
     resetForm();
     setSelectedAutomation(null);
     setModal('create');
+  };
+
+  // AI workflow assistance: returns a validated DRAFT that only
+  // pre-fills the create form - nothing is saved until the user saves.
+  const generateWithAI = async () => {
+    const description = aiPrompt.text.trim();
+    if (!description) return;
+    setAiPrompt((p) => ({ ...p, loading: true, error: '' }));
+    try {
+      const response = await API.post('/ai/workflow', { description });
+      setSelectedAutomation(null);
+      setForm({ ...createDefaultForm(), ...response.data.data });
+      setAiPrompt({ text: '', loading: false, error: '' });
+      setModal('create');
+      showToast('AI draft ready. Review it, then save.');
+    } catch (error) {
+      setAiPrompt((p) => ({ ...p, loading: false, error: getErrorMessage(error) }));
+    }
   };
 
   const openEdit = (automation) => {
@@ -1089,6 +1110,15 @@ export default function Automations() {
                 </p>
               </div>
             </div>
+
+            <button
+              type="button"
+              onClick={() => setModal('ai')}
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+            >
+              <Sparkles size={18} />
+              Generate with AI
+            </button>
 
             <button
               type="button"
@@ -2758,6 +2788,51 @@ export default function Automations() {
       {/* =====================================================
           TEST MODAL
       ===================================================== */}
+
+      {modal === 'ai' && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-950/70 backdrop-blur-sm" onClick={() => setModal(null)} />
+          <div className="relative w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-slate-700 dark:bg-slate-900">
+            <div className="mb-4 flex items-start justify-between gap-4">
+              <div>
+                <h2 className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
+                  <Sparkles size={18} /> Generate automation with AI
+                </h2>
+                <p className="mt-1 text-sm text-slate-500">
+                  Describe the workflow. AI creates a draft for you to review - nothing is activated automatically.
+                </p>
+              </div>
+              <button type="button" onClick={() => setModal(null)} className="rounded-lg p-1 text-slate-400 hover:text-slate-700">
+                <X size={18} />
+              </button>
+            </div>
+            <textarea
+              rows={4}
+              maxLength={1000}
+              value={aiPrompt.text}
+              onChange={(event) => setAiPrompt((p) => ({ ...p, text: event.target.value }))}
+              placeholder="e.g. When a website lead worth over 1 lakh is created, create a call task due tomorrow and notify the owner"
+              className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-sm outline-none focus:border-slate-400 focus:bg-white dark:border-slate-700 dark:bg-slate-800"
+            />
+            {aiPrompt.error && (
+              <p className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{aiPrompt.error}</p>
+            )}
+            <div className="mt-4 flex justify-end gap-2">
+              <button type="button" onClick={() => setModal(null)} className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200">
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={generateWithAI}
+                disabled={aiPrompt.loading || !aiPrompt.text.trim()}
+                className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-700 disabled:opacity-60 dark:bg-white dark:text-slate-900"
+              >
+                <Sparkles size={16} /> {aiPrompt.loading ? 'Generating…' : 'Generate draft'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {modal === 'test' &&
         selectedAutomation && (

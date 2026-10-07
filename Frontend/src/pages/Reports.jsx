@@ -18,9 +18,16 @@ import {
   Wallet,
   Activity as ActivityIcon,
   Target,
+  Download,
 } from "lucide-react";
 
 import api from "../services/api";
+import { LEAD_SOURCES } from "../utils/constants";
+import {
+  downloadCsv,
+} from "../utils/analytics";
+
+const LEAD_STATUS_OPTIONS = ["NEW", "CONTACTED", "QUALIFIED", "PROPOSAL", "NEGOTIATION", "WON", "LOST"];
 
 const BAR_COLOR = "#6366f1";
 const GRID_COLOR = "#e2e8f0";
@@ -1092,7 +1099,22 @@ export default function Reports() {
         billed: 0,
         paid: 0,
       },
+      salesOrders: [],
     });
+
+  // Phase 4 filters: team / territory / lead source / lead status / stage
+  const [extra, setExtra] = useState({
+    team: "",
+    territory: "",
+    source: "",
+    status: "",
+    stage: "",
+  });
+
+  const [scopes, setScopes] = useState({
+    teams: [],
+    territories: [],
+  });
 
   const [stageNames, setStageNames] =
     useState({});
@@ -1150,18 +1172,25 @@ export default function Reports() {
       setError("");
 
       try {
+        const scope = {};
+
+        if (owner) scope.owner = owner;
+        if (extra.team) scope.team = extra.team;
+        if (extra.territory) scope.territory = extra.territory;
+
         const reportParams = {
           ...params,
+          ...scope,
         };
 
         const salesParams = {
-          ...params,
+          ...reportParams,
           groupBy,
         };
 
-        if (owner) {
-          salesParams.owner = owner;
-        }
+        const leadParams = { ...reportParams };
+        if (extra.source) leadParams.source = extra.source;
+        if (extra.status) leadParams.status = extra.status;
 
         const [
           leads,
@@ -1169,11 +1198,12 @@ export default function Reports() {
           pipeline,
           activities,
           revenue,
+          salesOrders,
         ] = await Promise.all([
           api.get(
             "/reports/leads",
             {
-              params: reportParams,
+              params: leadParams,
             }
           ),
 
@@ -1185,7 +1215,13 @@ export default function Reports() {
           ),
 
           api.get(
-            "/reports/pipeline"
+            "/reports/pipeline",
+            {
+              params: {
+                ...scope,
+                ...(extra.stage ? { stage: extra.stage } : {}),
+              },
+            }
           ),
 
           api.get(
@@ -1197,6 +1233,13 @@ export default function Reports() {
 
           api.get(
             "/reports/revenue",
+            {
+              params: reportParams,
+            }
+          ),
+
+          api.get(
+            "/reports/sales-orders",
             {
               params: reportParams,
             }
@@ -1241,6 +1284,9 @@ export default function Reports() {
               billed: 0,
               paid: 0,
             },
+
+          salesOrders:
+            salesOrders?.data?.data?.rows || [],
         });
       } catch (err) {
         setError(getError(err));
@@ -1248,7 +1294,7 @@ export default function Reports() {
         setLoading(false);
       }
     },
-    [params, groupBy, owner]
+    [params, groupBy, owner, extra]
   );
 
   const loadOwners =
@@ -1319,6 +1365,19 @@ export default function Reports() {
     }, []);
 
   useEffect(() => {
+    Promise.all(
+      ["/teams", "/territories"].map((url) =>
+        api
+          .get(url)
+          .then((res) => res?.data?.data || [])
+          .catch(() => [])
+      )
+    ).then(([teams, territories]) =>
+      setScopes({ teams, territories })
+    );
+  }, []);
+
+  useEffect(() => {
     loadOwners();
     loadStages();
   }, [
@@ -1380,6 +1439,67 @@ export default function Reports() {
     [reports.activities]
   );
 
+  const salesOrderRows = useMemo(
+    () =>
+      toRows(
+        reports.salesOrders,
+        (row) =>
+          titleCase(row._id)
+      ),
+    [reports.salesOrders]
+  );
+
+  // Lead source performance (count + conversion).
+  const sourceRows = useMemo(
+    () =>
+      (reports.conversion?.bySource || []).map(
+        (row) => ({
+          ...row,
+          _id: row.source,
+          count: row.total,
+          label: `${titleCase(row.source)} · ${row.conversionRate}% won`,
+        })
+      ),
+    [reports.conversion]
+  );
+
+  const handleExport = () => {
+    const columns = [
+      { key: "section", label: "Section" },
+      { key: "label", label: "Item" },
+      { key: "count", label: "Count" },
+      { key: "value", label: "Value" },
+    ];
+
+    const section = (name, rows) =>
+      rows.map((row) => ({
+        section: name,
+        label: row.label,
+        count: row.count,
+        value: row.value ?? "",
+      }));
+
+    downloadCsv("crm-report.csv", columns, [
+      ...section("Leads by status", leadRows),
+      ...section("Lead sources", sourceRows),
+      ...section("Pipeline by stage", pipelineRows),
+      ...section("Activities", activityRows),
+      ...section("Sales orders", salesOrderRows),
+      {
+        section: "Revenue",
+        label: "Billed / Collected",
+        count: "",
+        value: `${reports.revenue?.billed || 0} / ${reports.revenue?.paid || 0}`,
+      },
+    ]);
+  };
+
+  const setExtraField = (key) => (event) =>
+    setExtra((prev) => ({
+      ...prev,
+      [key]: event.target.value,
+    }));
+
   const totalLeads = useMemo(
     () =>
       leadRows.reduce(
@@ -1426,6 +1546,7 @@ export default function Reports() {
     billed > 0 ||
     paid > 0 ||
     totalActivities > 0 ||
+    salesOrderRows.length > 0 ||
     pipelineRows.length > 0;
 
   const handlePeriodChange = (
@@ -1469,6 +1590,17 @@ export default function Reports() {
             </div>
           </div>
 
+          <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={handleExport}
+            disabled={loading}
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-600 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <Download size={16} />
+            Export
+          </button>
+
           <button
             type="button"
             onClick={handleRefresh}
@@ -1486,6 +1618,7 @@ export default function Reports() {
 
             Refresh
           </button>
+          </div>
         </div>
 
         {/* Filters */}
@@ -1619,6 +1752,83 @@ export default function Reports() {
                   )}
                 </select>
               </div>
+              {scopes.teams.length > 0 && (
+              <div>
+                <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                  Team
+                </label>
+
+                <select
+                  value={extra.team}
+                  onChange={setExtraField("team")}
+                  className="min-w-[150px] rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+                >
+                  <option value="">All Teams</option>
+                  {scopes.teams.map((t) => (<option key={t._id} value={t._id}>{t.name}</option>))}
+                </select>
+              </div>
+              )}
+              {scopes.territories.length > 0 && (
+              <div>
+                <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                  Territory
+                </label>
+
+                <select
+                  value={extra.territory}
+                  onChange={setExtraField("territory")}
+                  className="min-w-[150px] rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+                >
+                  <option value="">All Territories</option>
+                  {scopes.territories.map((t) => (<option key={t._id} value={t._id}>{t.name}</option>))}
+                </select>
+              </div>
+              )}
+
+              <div>
+                <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                  Lead Source
+                </label>
+
+                <select
+                  value={extra.source}
+                  onChange={setExtraField("source")}
+                  className="min-w-[150px] rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+                >
+                  <option value="">All Sources</option>
+                  {LEAD_SOURCES.map((key) => (<option key={key} value={key}>{titleCase(key)}</option>))}
+                </select>
+              </div>
+
+              <div>
+                <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                  Lead Status
+                </label>
+
+                <select
+                  value={extra.status}
+                  onChange={setExtraField("status")}
+                  className="min-w-[150px] rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+                >
+                  <option value="">All Statuses</option>
+                  {LEAD_STATUS_OPTIONS.map((key) => (<option key={key} value={key}>{titleCase(key)}</option>))}
+                </select>
+              </div>
+
+              <div>
+                <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                  Deal Stage
+                </label>
+
+                <select
+                  value={extra.stage}
+                  onChange={setExtraField("stage")}
+                  className="min-w-[150px] rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+                >
+                  <option value="">All Stages</option>
+                  {Object.entries(stageNames).map(([key, name]) => (<option key={key} value={key}>{name}</option>))}
+                </select>
+              </div>
             </div>
           </div>
         </div>
@@ -1740,6 +1950,20 @@ export default function Reports() {
                 subtitle="Current opportunity pipeline distribution."
                 rows={pipelineRows}
                 valueLabel="Deals"
+              />
+
+              <BreakdownPanel
+                title="Lead Source Performance"
+                subtitle="Leads per source with win conversion."
+                rows={sourceRows}
+                valueLabel="Leads"
+              />
+
+              <BreakdownPanel
+                title="Sales Orders by Status"
+                subtitle="Orders placed during the selected period."
+                rows={salesOrderRows}
+                valueLabel="Orders"
               />
 
               <BreakdownPanel

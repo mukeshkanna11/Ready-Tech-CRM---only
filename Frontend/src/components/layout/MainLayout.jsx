@@ -4,6 +4,21 @@ import React, {
   useState,
 } from "react";
 import { CalendarDays, ClipboardList, FileSpreadsheet } from "lucide-react";
+import AIAssistant from "../crm/AIAssistant";
+import {
+  Bot,
+  CalendarPlus,
+  ChevronDown,
+  Gauge,
+  Lightbulb,
+  MailPlus,
+  NotebookPen,
+  Sparkles,
+  TrendingUp,
+  UserCheck,
+  Workflow,
+} from "lucide-react";
+import { BarChart3, FileBarChart, Filter, LineChart, Map as MapIcon, Trophy } from "lucide-react";
 import {
   NavLink,
   Outlet,
@@ -137,7 +152,122 @@ const navigation = [
     icon: Wallet,
     description: "Manage customer payments",
   },
+  {
+    name: "Forecast",
+    path: "/forecast",
+    icon: LineChart,
+    description: "Sales forecasting",
+  },
+  {
+    name: "Reports",
+    path: "/reports",
+    icon: BarChart3,
+    description: "Reports & analytics",
+  },
+  {
+    name: "Sales Performance",
+    path: "/sales-performance",
+    icon: Trophy,
+    description: "Salesperson ranking",
+  },
+  {
+    name: "Conversion",
+    path: "/conversion",
+    icon: Filter,
+    description: "Lead conversion funnel",
+  },
+  {
+    name: "Custom Reports",
+    path: "/custom-reports",
+    icon: FileBarChart,
+    description: "Build & save reports",
+  },
+  {
+    name: "Teams & Territories",
+    path: "/teams",
+    icon: MapIcon,
+    description: "Sales teams & regions",
+  },
 ];
+
+// ======================================================
+// AI INTEGRATIONS
+// ======================================================
+//
+// The AI features live inside existing pages (no separate
+// routes): the record "AI Assist" tab on Leads / Contacts /
+// Companies, Forecast, Automations, and the floating
+// assistant. `ai` only identifies the menu item for active
+// highlighting; the pages ignore it.
+
+const aiNavigation = [
+  {
+    key: "assistant",
+    name: "AI Sales Assistant",
+    icon: Bot,
+    description: "Ask about your pipeline",
+    // Opens the existing floating assistant.
+    action: "assistant",
+  },
+  {
+    key: "qualification",
+    name: "AI Lead Qualification",
+    path: "/leads",
+    icon: UserCheck,
+    description: "Lead → AI Assist tab",
+  },
+  {
+    key: "drafting",
+    name: "AI Email / Message Drafting",
+    path: "/contacts",
+    icon: MailPlus,
+    description: "Record → AI Assist tab",
+  },
+  {
+    key: "meeting-summary",
+    name: "AI Meeting / Call Summary",
+    path: "/leads",
+    icon: NotebookPen,
+    description: "Record → AI Assist tab",
+  },
+  {
+    key: "insights",
+    name: "AI Customer Insights",
+    path: "/companies",
+    icon: Lightbulb,
+    description: "Record → AI Assist tab",
+  },
+  {
+    key: "scoring",
+    name: "AI Lead Scoring",
+    path: "/leads",
+    icon: Gauge,
+    description: "Lead → AI Assist tab",
+  },
+  {
+    key: "forecasting",
+    name: "AI Sales Forecasting",
+    path: "/forecast",
+    icon: TrendingUp,
+    description: "Explain forecast",
+  },
+  {
+    key: "follow-ups",
+    name: "AI Follow-up Suggestions",
+    path: "/leads",
+    icon: CalendarPlus,
+    description: "Record → AI Assist tab",
+  },
+  {
+    key: "workflow",
+    name: "AI Workflow Assistance",
+    path: "/automations",
+    icon: Workflow,
+    description: "Generate with AI",
+  },
+];
+
+const AI_MENU_KEY = "crm_ai_menu_open";
 
 // ======================================================
 // HELPERS
@@ -205,6 +335,23 @@ const formatRole = (role) => {
 export default function MainLayout() {
   const navigate = useNavigate();
   const location = useLocation();
+
+  // AI Integrations section (collapsible, remembered).
+  const activeAiKey = new URLSearchParams(location.search).get("ai");
+  const [aiMenuOpen, setAiMenuOpen] = useState(
+    () => localStorage.getItem(AI_MENU_KEY) !== "false"
+  );
+
+  const toggleAiMenu = () =>
+    setAiMenuOpen((open) => {
+      localStorage.setItem(AI_MENU_KEY, String(!open));
+      return !open;
+    });
+
+  const openAssistant = () =>
+    document
+      .querySelector('[aria-label="AI Sales Assistant"]')
+      ?.click();
 
   const [
     mobileSidebarOpen,
@@ -607,6 +754,117 @@ export default function MainLayout() {
               );
             })}
           </nav>
+
+          {/* ==================================================
+              AI INTEGRATIONS
+          ================================================== */}
+
+          <div className="mt-6">
+            {collapsed ? (
+              <div className="mx-auto mb-2 h-px w-8 bg-white/10" />
+            ) : (
+              <button
+                type="button"
+                onClick={toggleAiMenu}
+                aria-expanded={aiMenuOpen || Boolean(activeAiKey)}
+                className="mb-2 flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-left transition hover:bg-white/[0.04]"
+              >
+                <span className="flex items-center gap-2">
+                  <Sparkles className="h-3.5 w-3.5 text-violet-400" strokeWidth={2} />
+                  <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-500">
+                    AI Integrations
+                  </span>
+                </span>
+
+                <ChevronDown
+                  className={`h-3.5 w-3.5 text-slate-500 transition-transform duration-200 ${
+                    aiMenuOpen || activeAiKey ? "" : "-rotate-90"
+                  }`}
+                  strokeWidth={2}
+                />
+              </button>
+            )}
+
+            {(collapsed || aiMenuOpen || activeAiKey) && (
+              <nav className="space-y-1">
+                {aiNavigation.map((item) => {
+                  const Icon = item.icon;
+                  const isActive =
+                    Boolean(item.path) &&
+                    location.pathname === item.path &&
+                    activeAiKey === item.key;
+
+                  const className = [
+                    "group relative flex w-full items-center overflow-hidden rounded-xl text-left transition-all duration-200",
+                    collapsed ? "justify-center px-2 py-2.5" : "gap-3 px-3 py-2",
+                    isActive
+                      ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-lg shadow-violet-600/20"
+                      : "text-slate-400 hover:bg-white/[0.045] hover:text-white",
+                  ].join(" ");
+
+                  const content = (
+                    <>
+                      {isActive && (
+                        <span className="absolute left-0 top-2 bottom-2 w-0.5 rounded-r-full bg-white/90" />
+                      )}
+
+                      <span
+                        className={[
+                          "flex shrink-0 items-center justify-center rounded-[10px] transition-all duration-200",
+                          collapsed ? "h-10 w-10" : "h-8 w-8",
+                          isActive
+                            ? "bg-white/10 text-white"
+                            : "bg-violet-500/[0.08] text-violet-300/80 group-hover:bg-violet-500/[0.15] group-hover:text-violet-200",
+                        ].join(" ")}
+                      >
+                        <Icon className="h-[17px] w-[17px]" strokeWidth={isActive ? 2 : 1.8} />
+                      </span>
+
+                      {!collapsed && (
+                        <span className="min-w-0 flex-1">
+                          <span
+                            className={`block truncate text-[12px] font-semibold ${
+                              isActive ? "text-white" : "text-slate-300"
+                            }`}
+                          >
+                            {item.name}
+                          </span>
+                          <span
+                            className={`mt-0.5 block truncate text-[9px] ${
+                              isActive ? "text-violet-100/70" : "text-slate-600"
+                            }`}
+                          >
+                            {item.description}
+                          </span>
+                        </span>
+                      )}
+                    </>
+                  );
+
+                  return item.action === "assistant" ? (
+                    <button
+                      key={item.key}
+                      type="button"
+                      onClick={openAssistant}
+                      title={item.name}
+                      className={className}
+                    >
+                      {content}
+                    </button>
+                  ) : (
+                    <NavLink
+                      key={item.key}
+                      to={`${item.path}?ai=${item.key}`}
+                      title={item.name}
+                      className={className}
+                    >
+                      {content}
+                    </NavLink>
+                  );
+                })}
+              </nav>
+            )}
+          </div>
         </div>
 
         {/* ==================================================
@@ -1025,6 +1283,7 @@ export default function MainLayout() {
         {/* Pages own their own max-width and padding. */}
         <main className="min-h-[calc(100vh-74px)]">
           <Outlet />
+          <AIAssistant />
         </main>
 
         {/* ==================================================

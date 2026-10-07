@@ -1,12 +1,12 @@
 'use strict';
 
-const mongoose = require('mongoose');
-
 const Opportunity = require('../models/Opportunity');
 const ApiError = require('../utils/ApiError');
 const asyncHandler = require('../utils/asyncHandler');
 const { sendSuccess } = require('../utils/apiResponse');
 const { getStages } = require('../services/pipelineStage.service');
+const User = require('../models/User');
+const { resolveOwnerIds } = require('./team.controller');
 
 // ======================================================
 // SALES FORECAST
@@ -83,14 +83,9 @@ exports.getForecast = asyncHandler(async (req, res) => {
     throw new ApiError(400, '"from" must be before "to"', 'INVALID_PERIOD');
   }
 
-  const baseMatch = {};
-
-  if (req.query.owner) {
-    if (!mongoose.isValidObjectId(req.query.owner)) {
-      throw new ApiError(400, 'Invalid owner', 'INVALID_OWNER');
-    }
-    baseMatch.owner = new mongoose.Types.ObjectId(req.query.owner);
-  }
+  // ?owner / ?team / ?territory
+  const ownerIds = await resolveOwnerIds(req);
+  const baseMatch = ownerIds ? { owner: { $in: ownerIds } } : {};
 
   const periodMatch = {};
   if (from) periodMatch.$gte = from;
@@ -153,6 +148,12 @@ exports.getForecast = asyncHandler(async (req, res) => {
           },
         ],
 
+        byOwner: [
+          ...(hasPeriod ? [{ $match: { periodDate: periodMatch } }] : []),
+          { $group: { _id: '$owner', ...TOTALS_GROUP } },
+          { $sort: { wonValue: -1, weightedValue: -1 } },
+        ],
+
         // Open deals with no expected close date can't be placed in a period.
         undatedOpen: [
           { $match: { status: 'OPEN', expectedCloseDate: null } },
@@ -169,6 +170,12 @@ exports.getForecast = asyncHandler(async (req, res) => {
     },
   ]);
 
+  const ownerRows = result.byOwner || [];
+  const owners = await User.find({ _id: { $in: ownerRows.map((r) => r._id).filter(Boolean) } })
+    .select('name email')
+    .lean();
+  const ownerNames = Object.fromEntries(owners.map((u) => [String(u._id), u.name || u.email]));
+
   const stages = await getStages();
   const stageOrder = stages.map((stage) => stage.key);
   const stageNames = Object.fromEntries(stages.map((s) => [s.key, s.name]));
@@ -180,6 +187,8 @@ exports.getForecast = asyncHandler(async (req, res) => {
       count: row.count,
       value: round(row.value),
       weightedValue: round(row.weightedValue),
+      // Value-weighted average probability of the stage's open deals.
+      probability: row.value ? round((row.weightedValue / row.value) * 100) : null,
     }))
     .sort((a, b) => {
       const ai = stageOrder.indexOf(a.stage);
@@ -199,6 +208,11 @@ exports.getForecast = asyncHandler(async (req, res) => {
         ...shapeTotals(row),
       })),
       byStage,
+      byOwner: ownerRows.map((row) => ({
+        owner: row._id || null,
+        name: row._id ? ownerNames[String(row._id)] || 'Unknown user' : 'Unassigned',
+        ...shapeTotals(row),
+      })),
       undatedOpen: {
         count: undated?.count || 0,
         value: round(undated?.value),

@@ -1,47 +1,37 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { LineChart, RefreshCw } from "lucide-react";
+import { useState } from "react";
+import { LineChart, Download, Sparkles } from "lucide-react";
 
 import API from "../services/api";
+import {
+  Bar,
+  CartesianGrid,
+  ComposedChart,
+  Legend,
+  Line,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 
-const PERIODS = [
-  { value: "THIS_MONTH", label: "This month" },
-  { value: "THIS_QUARTER", label: "This quarter" },
-  { value: "NEXT_QUARTER", label: "Next quarter" },
-  { value: "THIS_YEAR", label: "This year" },
-  { value: "ALL", label: "All time" },
-  { value: "CUSTOM", label: "Custom range" },
-];
-
-const toInputDate = (date) => {
-  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
-  return local.toISOString().slice(0, 10);
-};
-
-const getRange = (period) => {
-  const now = new Date();
-  const year = now.getFullYear();
-  const quarterStart = Math.floor(now.getMonth() / 3) * 3;
-
-  switch (period) {
-    case "THIS_MONTH":
-      return [new Date(year, now.getMonth(), 1), new Date(year, now.getMonth() + 1, 0)];
-    case "THIS_QUARTER":
-      return [new Date(year, quarterStart, 1), new Date(year, quarterStart + 3, 0)];
-    case "NEXT_QUARTER":
-      return [new Date(year, quarterStart + 3, 1), new Date(year, quarterStart + 6, 0)];
-    case "THIS_YEAR":
-      return [new Date(year, 0, 1), new Date(year, 11, 31)];
-    default:
-      return [null, null];
-  }
-};
-
-const formatMoney = (value) =>
-  new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency: "INR",
-    maximumFractionDigits: 0,
-  }).format(Number(value) || 0);
+import {
+  DataTable,
+  ErrorBox,
+  FilterBar,
+  PageHeader,
+  Panel,
+  SkeletonGrid,
+  StatTile,
+} from "../components/common/Analytics";
+import {
+  CHART,
+  downloadCsv,
+  formatMoney,
+  formatPct,
+  getError,
+  useAnalyticsFilters,
+  useReport,
+} from "../utils/analytics";
 
 const formatMonth = (key) => {
   const [year, month] = String(key).split("-").map(Number);
@@ -52,163 +42,86 @@ const formatMonth = (key) => {
   });
 };
 
-const getError = (error) =>
-  error?.response?.data?.message || error?.message || "Request failed";
+const money = (key) => ({ key, align: "right", render: (row) => formatMoney(row[key]) });
 
-function StatTile({ label, value, hint, accent = "text-slate-800" }) {
-  return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5">
-      <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-        {label}
-      </p>
-      <p className={`mt-2 text-2xl font-bold ${accent}`}>{value}</p>
-      {hint && <p className="mt-1 text-xs text-slate-400">{hint}</p>}
-    </div>
-  );
-}
+const MONTH_COLUMNS = [
+  { key: "month", label: "Month", render: (row) => <span className="cell-strong">{formatMonth(row.month)}</span> },
+  { ...money("openValue"), label: "Open" },
+  { ...money("weightedValue"), label: "Weighted" },
+  { ...money("wonValue"), label: "Won" },
+  { ...money("lostValue"), label: "Lost" },
+  { ...money("forecastValue"), label: "Expected" },
+];
+
+const STAGE_COLUMNS = [
+  { key: "name", label: "Stage", render: (row) => <span className="cell-strong">{row.name}</span> },
+  { key: "count", label: "Deals", align: "right" },
+  { key: "probability", label: "Win prob.", align: "right", render: (row) => (row.probability ?? null) === null ? "—" : formatPct(row.probability) },
+  { ...money("value"), label: "Value" },
+  { ...money("weightedValue"), label: "Weighted" },
+];
+
+const OWNER_COLUMNS = [
+  { key: "name", label: "Salesperson", render: (row) => <span className="cell-strong">{row.name}</span> },
+  { key: "openCount", label: "Open deals", align: "right" },
+  { ...money("openValue"), label: "Open value" },
+  { ...money("weightedValue"), label: "Weighted" },
+  { ...money("wonValue"), label: "Won" },
+  { key: "winRate", label: "Win rate", align: "right", render: (row) => formatPct(row.winRate) },
+  { ...money("forecastValue"), label: "Expected" },
+];
 
 export default function Forecast() {
-  const [period, setPeriod] = useState("THIS_QUARTER");
-  const [customFrom, setCustomFrom] = useState("");
-  const [customTo, setCustomTo] = useState("");
-  const [owner, setOwner] = useState("");
-  const [owners, setOwners] = useState([]);
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const filters = useAnalyticsFilters("THIS_QUARTER");
+  const { data, loading, error, reload } = useReport("/opportunities/forecast", filters.params);
 
-  const params = useMemo(() => {
-    const result = {};
-    if (period === "CUSTOM") {
-      if (customFrom) result.from = customFrom;
-      if (customTo) result.to = customTo;
-    } else {
-      const [from, to] = getRange(period);
-      if (from) result.from = toInputDate(from);
-      if (to) result.to = toInputDate(to);
-    }
-    if (owner) result.owner = owner;
-    return result;
-  }, [period, customFrom, customTo, owner]);
-
-  const loadForecast = useCallback(async () => {
-    setLoading(true);
-    setError("");
+  // AI interpretation of the calculated forecast (user-triggered).
+  const [ai, setAi] = useState({ loading: false, error: "", data: null, key: "" });
+  const aiKey = JSON.stringify(filters.params);
+  const explain = async () => {
+    setAi({ loading: true, error: "", data: null, key: aiKey });
     try {
-      const response = await API.get("/opportunities/forecast", { params });
-      setData(response?.data?.data || null);
+      const res = await API.post("/ai/forecast", filters.params);
+      setAi({ loading: false, error: "", data: res.data?.data, key: aiKey });
     } catch (err) {
-      setError(getError(err));
-      setData(null);
-    } finally {
-      setLoading(false);
+      setAi({ loading: false, error: getError(err), data: null, key: aiKey });
     }
-  }, [params]);
-
-  useEffect(() => {
-    loadForecast();
-  }, [loadForecast]);
-
-  useEffect(() => {
-    API.get("/users", { params: { limit: 100 } })
-      .then((response) => {
-        const list = response?.data?.data;
-        setOwners(Array.isArray(list) ? list : []);
-      })
-      .catch(() => setOwners([]));
-  }, []);
+  };
+  // Hide insights that were generated for different filters.
+  const aiView = ai.key === aiKey ? ai : { loading: false, error: "", data: null };
 
   const totals = data?.totals;
   const isEmpty = !loading && !error && (!totals || totals.count === 0);
+  const chartRows = (data?.byMonth || []).map((row) => ({ ...row, label: formatMonth(row.month) }));
+
+  const exportCsv = () =>
+    downloadCsv(
+      "sales-forecast.csv",
+      MONTH_COLUMNS.map(({ key, label }) => ({ key, label })),
+      data?.byMonth || []
+    );
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <LineChart className="h-7 w-7 text-indigo-600" />
-          <div>
-            <h1 className="text-2xl font-bold text-slate-800">
-              Sales Forecast
-            </h1>
-            <p className="text-sm text-slate-500">
-              Weighted revenue forecast from your opportunities.
-            </p>
-          </div>
-        </div>
-
-        <button
-          onClick={loadForecast}
-          disabled={loading}
-          className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 disabled:opacity-50"
-        >
-          <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-          Refresh
+    <div className="mx-auto max-w-[1600px] space-y-6 p-4 md:p-6 lg:p-8">
+      <PageHeader
+        icon={LineChart}
+        title="Sales Forecast"
+        subtitle="Weighted revenue forecast from your opportunities."
+        onRefresh={reload}
+        loading={loading}
+      >
+        <button type="button" onClick={exportCsv} disabled={!data?.byMonth?.length} className="btn btn-secondary">
+          <Download size={16} /> Export
         </button>
-      </div>
+      </PageHeader>
 
-      <div className="flex flex-wrap items-center gap-3">
-        <select
-          value={period}
-          onChange={(e) => setPeriod(e.target.value)}
-          className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
-        >
-          {PERIODS.map((item) => (
-            <option key={item.value} value={item.value}>
-              {item.label}
-            </option>
-          ))}
-        </select>
-
-        {period === "CUSTOM" && (
-          <>
-            <input
-              type="date"
-              value={customFrom}
-              onChange={(e) => setCustomFrom(e.target.value)}
-              className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
-            />
-            <span className="text-sm text-slate-400">to</span>
-            <input
-              type="date"
-              value={customTo}
-              onChange={(e) => setCustomTo(e.target.value)}
-              className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
-            />
-          </>
-        )}
-
-        <select
-          value={owner}
-          onChange={(e) => setOwner(e.target.value)}
-          className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
-        >
-          <option value="">All owners</option>
-          {owners.map((user) => (
-            <option key={user._id} value={user._id}>
-              {user.name || user.email}
-            </option>
-          ))}
-        </select>
-
-        {params.from || params.to ? (
-          <span className="text-xs text-slate-400">
-            {params.from || "…"} → {params.to || "…"}
-          </span>
-        ) : null}
-      </div>
-
-      {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {error}
-        </div>
-      )}
+      <FilterBar filters={filters} />
+      <ErrorBox error={error} onRetry={reload} />
 
       {loading ? (
-        <div className="rounded-2xl border border-slate-200 bg-white px-4 py-16 text-center text-sm text-slate-400">
-          Calculating forecast...
-        </div>
+        <SkeletonGrid count={8} />
       ) : isEmpty ? (
-        <div className="rounded-2xl border border-slate-200 bg-white px-4 py-16 text-center text-sm text-slate-400">
+        <div className="card px-4 py-16 text-center text-sm text-slate-500">
           No opportunities in this period.
           {data?.undatedOpen?.count > 0 &&
             ` ${data.undatedOpen.count} open opportunities have no expected close date.`}
@@ -216,137 +129,105 @@ export default function Forecast() {
       ) : totals ? (
         <>
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <StatTile label="Total Pipeline" value={formatMoney(totals.totalValue)} hint={`${totals.count} opportunities`} />
+            <StatTile label="Open Pipeline" value={formatMoney(totals.openValue)} hint={`${totals.openCount} open`} />
+            <StatTile label="Weighted Pipeline" value={formatMoney(totals.weightedValue)} hint="Open value × probability" tone="brand" />
+            <StatTile label="Expected Revenue" value={formatMoney(totals.forecastValue)} hint="Won + weighted open" tone="brand" />
+            <StatTile label="Won Revenue" value={formatMoney(totals.wonValue)} hint={`${totals.wonCount} won`} tone="green" />
+            <StatTile label="Lost Value" value={formatMoney(totals.lostValue)} hint={`${totals.lostCount} lost`} tone="red" />
+            <StatTile label="Win Probability" value={formatPct(totals.winRate)} hint="Won ÷ closed deals" />
             <StatTile
-              label="Total Pipeline Value"
-              value={formatMoney(totals.totalValue)}
-              hint={`${totals.count} opportunities`}
-            />
-            <StatTile
-              label="Weighted Forecast"
-              value={formatMoney(totals.weightedValue)}
-              hint="Open value × probability"
-              accent="text-indigo-600"
-            />
-            <StatTile
-              label="Won Value"
-              value={formatMoney(totals.wonValue)}
-              hint={`${totals.wonCount} won · ${totals.winRate}% win rate`}
-              accent="text-emerald-600"
-            />
-            <StatTile
-              label="Open Value"
-              value={formatMoney(totals.openValue)}
-              hint={`${totals.openCount} open`}
-            />
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <StatTile
-              label="Expected Revenue (Won + Weighted)"
-              value={formatMoney(totals.forecastValue)}
-              accent="text-indigo-600"
-            />
-            <StatTile
-              label="Lost Value"
-              value={formatMoney(totals.lostValue)}
-              hint={`${totals.lostCount} lost`}
-              accent="text-rose-600"
+              label="Avg. Open Probability"
+              value={formatPct(totals.openValue ? Math.round((totals.weightedValue / totals.openValue) * 1000) / 10 : 0)}
+              hint="Value-weighted"
             />
           </div>
 
           {data.undatedOpen?.count > 0 && (
             <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
-              {data.undatedOpen.count} open opportunities (
-              {formatMoney(data.undatedOpen.value)}) have no expected close
-              date and are not included in period totals.
+              {data.undatedOpen.count} open opportunities ({formatMoney(data.undatedOpen.value)}) have no
+              expected close date and are not included in period totals.
             </div>
           )}
 
-          <div className="grid gap-6 xl:grid-cols-2">
-            <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white">
-              <p className="border-b border-slate-200 px-4 py-3 font-semibold text-slate-800">
-                By Month
-              </p>
-              {data.byMonth?.length ? (
-                <table className="w-full text-left text-sm">
-                  <thead className="bg-slate-50 text-xs uppercase text-slate-500">
-                    <tr>
-                      <th className="px-4 py-2">Month</th>
-                      <th className="px-4 py-2 text-right">Open</th>
-                      <th className="px-4 py-2 text-right">Weighted</th>
-                      <th className="px-4 py-2 text-right">Won</th>
-                      <th className="px-4 py-2 text-right">Forecast</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {data.byMonth.map((row) => (
-                      <tr key={row.month}>
-                        <td className="px-4 py-2 font-medium text-slate-700">
-                          {formatMonth(row.month)}
-                        </td>
-                        <td className="px-4 py-2 text-right text-slate-500">
-                          {formatMoney(row.openValue)}
-                        </td>
-                        <td className="px-4 py-2 text-right text-indigo-600">
-                          {formatMoney(row.weightedValue)}
-                        </td>
-                        <td className="px-4 py-2 text-right text-emerald-600">
-                          {formatMoney(row.wonValue)}
-                        </td>
-                        <td className="px-4 py-2 text-right font-semibold text-slate-800">
-                          {formatMoney(row.forecastValue)}
-                        </td>
-                      </tr>
+          <Panel
+            title="AI Forecast Insights"
+            hint="AI explains the figures above; the numbers themselves come from the CRM calculation."
+            actions={
+              <button type="button" onClick={explain} disabled={aiView.loading} className="btn btn-secondary">
+                <Sparkles size={16} /> {aiView.loading ? "Analysing…" : aiView.data ? "Refresh insights" : "Explain forecast"}
+              </button>
+            }
+          >
+            <div className="p-5">
+              {aiView.loading ? (
+                <div className="space-y-2">
+                  <div className="h-3 w-2/3 animate-pulse rounded bg-slate-100" />
+                  <div className="h-3 w-1/2 animate-pulse rounded bg-slate-100" />
+                </div>
+              ) : aiView.error ? (
+                <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{aiView.error}</p>
+              ) : aiView.data ? (
+                <div className="space-y-3">
+                  <p className="font-semibold text-slate-900">{aiView.data.headline}</p>
+                  <div className="grid gap-4 md:grid-cols-3">
+                    {[
+                      ["Observations", aiView.data.observations],
+                      ["Risks", aiView.data.risks],
+                      ["Recommendations", aiView.data.recommendations],
+                    ].map(([title, items]) => (
+                      <div key={title}>
+                        <p className="eyebrow mb-1">{title}</p>
+                        {items?.length ? (
+                          <ul className="list-disc space-y-1 pl-5 text-sm text-slate-700">
+                            {items.map((item, i) => <li key={i}>{item}</li>)}
+                          </ul>
+                        ) : (
+                          <p className="text-sm text-slate-500">None noted.</p>
+                        )}
+                      </div>
                     ))}
-                  </tbody>
-                </table>
+                  </div>
+                </div>
               ) : (
-                <p className="px-4 py-8 text-center text-sm text-slate-400">
-                  No dated opportunities.
-                </p>
+                <p className="text-sm text-slate-500">Click “Explain forecast” for an AI summary of this period.</p>
               )}
             </div>
+          </Panel>
 
-            <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white">
-              <p className="border-b border-slate-200 px-4 py-3 font-semibold text-slate-800">
-                Open Pipeline by Stage
-              </p>
-              {data.byStage?.length ? (
-                <table className="w-full text-left text-sm">
-                  <thead className="bg-slate-50 text-xs uppercase text-slate-500">
-                    <tr>
-                      <th className="px-4 py-2">Stage</th>
-                      <th className="px-4 py-2 text-right">Deals</th>
-                      <th className="px-4 py-2 text-right">Value</th>
-                      <th className="px-4 py-2 text-right">Weighted</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {data.byStage.map((row) => (
-                      <tr key={row.stage}>
-                        <td className="px-4 py-2 font-medium text-slate-700">
-                          {row.name}
-                        </td>
-                        <td className="px-4 py-2 text-right text-slate-500">
-                          {row.count}
-                        </td>
-                        <td className="px-4 py-2 text-right text-slate-500">
-                          {formatMoney(row.value)}
-                        </td>
-                        <td className="px-4 py-2 text-right text-indigo-600">
-                          {formatMoney(row.weightedValue)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              ) : (
-                <p className="px-4 py-8 text-center text-sm text-slate-400">
-                  No open opportunities.
-                </p>
-              )}
-            </div>
+          <Panel title="Forecast by Month" hint="Won revenue, weighted open pipeline and expected revenue.">
+            {chartRows.length ? (
+              <div className="h-80 p-4">
+                <ResponsiveContainer width="100%" height="100%">
+                  <ComposedChart data={chartRows}>
+                    <CartesianGrid stroke={CHART.grid} vertical={false} />
+                    <XAxis dataKey="label" stroke={CHART.axis} fontSize={12} />
+                    <YAxis stroke={CHART.axis} fontSize={12} tickFormatter={(v) => formatMoney(v)} width={90} />
+                    <Tooltip formatter={(v) => formatMoney(v)} />
+                    <Legend />
+                    <Bar dataKey="wonValue" name="Won" stackId="f" fill={CHART.green} maxBarSize={64} />
+                    <Bar dataKey="weightedValue" name="Weighted open" stackId="f" fill={CHART.brand} radius={[6, 6, 0, 0]} maxBarSize={64} />
+                    <Line dataKey="openValue" name="Open (unweighted)" stroke={CHART.amber} strokeWidth={2} dot={false} />
+                  </ComposedChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <p className="px-5 py-10 text-center text-sm text-slate-500">No dated opportunities.</p>
+            )}
+          </Panel>
+
+          <div className="grid gap-6 xl:grid-cols-2">
+            <Panel title="Open Pipeline by Stage">
+              <DataTable columns={STAGE_COLUMNS} rows={data.byStage} rowKey={(r) => r.stage} empty="No open opportunities." />
+            </Panel>
+            <Panel title="Forecast by Salesperson">
+              <DataTable columns={OWNER_COLUMNS} rows={data.byOwner} rowKey={(r) => r.owner || "none"} />
+            </Panel>
           </div>
+
+          <Panel title="Forecast Table">
+            <DataTable columns={MONTH_COLUMNS} rows={data.byMonth} rowKey={(r) => r.month} empty="No dated opportunities." />
+          </Panel>
         </>
       ) : null}
     </div>

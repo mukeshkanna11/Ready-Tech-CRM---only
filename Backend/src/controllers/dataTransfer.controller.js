@@ -329,4 +329,5 @@ module.exports = {
   importCsv,
   requireEntityPermission,
   parseCsv,
+  csvCell,
 };

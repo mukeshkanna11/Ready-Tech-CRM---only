@@ -10,5 +10,7 @@ router.get('/sales', controller.sales);
 router.get('/pipeline', controller.pipeline);
 router.get('/activities', controller.activities);
 router.get('/revenue', controller.revenue);
+router.get('/sales-orders', controller.salesOrders);
+router.get('/performance', controller.performance);
 
 module.exports = router;
